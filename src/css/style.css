@@ -187,6 +187,92 @@ time{background:var(--teal);color:white;border-radius:2px}
 }
 @media(max-width:860px){#masthead{grid-template-columns:1fr}.article-mast{align-items:flex-start;flex-direction:column}}
 
+/* Layouts para notebooks compactos e tablets */
+@media(max-width:1100px) and (min-width:641px){
+  #masthead{grid-template-columns:minmax(130px,170px) minmax(0,1fr) minmax(130px,170px);gap:1rem}
+  .tit h1{font-size:clamp(1.65rem,4vw,2.8rem);letter-spacing:.12em}
+  .tit h1 i{letter-spacing:.03em}
+  .num strong{font-size:2.2rem}
+  .top3{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1rem}
+  .top3>.main{grid-column:1/-1;order:-1}
+  .top3>.col,.top3>aside.col{min-width:0}
+  .top3>aside.col .evt{height:auto}
+  .num{text-align:right;align-items:flex-end}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:1rem}
+  .extra.comimg{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+  .navin{align-items:flex-start}
+  .acts{justify-content:flex-end}
+}
+
+/* Celulares, incluindo telas estreitas e orientação paisagem */
+@media(max-width:640px){
+  .wrap{padding-inline:1rem}
+  #masthead{grid-template-columns:minmax(0,1fr);gap:.9rem;padding-top:1rem;padding-bottom:.9rem}
+  .selo{justify-self:center;width:min(100%,230px);max-width:230px;padding:.65rem}
+  .l{font-size:.9rem}
+  .l.c{font-size:1rem}
+  .tit{width:100%;min-width:0}
+  .tit h1{font-size:clamp(1.65rem,8vw,2.35rem);letter-spacing:.1em;overflow-wrap:anywhere}
+  .tit h1 i{font-size:.48em;letter-spacing:.04em}
+  .sub{justify-content:center;gap:.4rem;flex-wrap:wrap}
+  .sub u{width:.55rem;height:.55rem}
+  .sub hr{flex:1;min-width:1.5rem}
+  .sub span{font-size:.58rem;white-space:normal;text-align:center}
+  .num{text-align:center;align-items:center}
+  .num strong{font-size:2rem}
+  .run{font-size:.7rem}
+  .nav{position:relative}
+  .navin{display:block;padding-block:.45rem}
+  .anchors{gap:1rem;padding:.2rem 0 .55rem;font-size:.72rem;scrollbar-width:thin}
+  .anchors a{padding:.45rem .1rem;min-height:44px}
+  .acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+  .acts select{grid-column:1/-1;width:100%;max-width:none;min-height:44px}
+  .acts .btn{min-height:44px;padding:.55rem .45rem;font-size:.75rem;white-space:normal}
+  main{padding-block:1rem 1.8rem}
+  .top3{grid-template-columns:minmax(0,1fr)!important;gap:.8rem}
+  .top3>.main{grid-column:auto;order:-1;padding:.85rem}
+  .main h2{font-size:clamp(1.45rem,7vw,1.9rem)}
+  .main .big,.ph.big{aspect-ratio:4/3}
+  .mini,.main,.card,.extra{min-width:0}
+  .mini h3,.card h3,.extra h3{font-size:1rem;overflow-wrap:anywhere}
+  p{font-size:.9rem;overflow-wrap:anywhere}
+  .evt{padding:1rem}
+  .evt li{align-items:flex-start}
+  .sec{margin-top:1.7rem}
+  .sh{font-size:1.25rem;line-height:1.3}
+  .cards{grid-template-columns:minmax(0,1fr);gap:.8rem}
+  .card{padding:.85rem}
+  .datas{padding:1rem;border-left-width:4px}
+  .cal{grid-template-columns:minmax(0,1fr);gap:.65rem}
+  .dt{padding:.75rem;gap:.65rem;font-size:.82rem}
+  .dt time{min-width:2.7rem;padding-right:.55rem}
+  .dt time b{font-size:1.9rem}
+  .dt-more{font-size:.68rem}
+  .extra.comimg{grid-template-columns:minmax(0,1fr);gap:.8rem;padding:.85rem}
+  .extra img,.extra .ph{max-height:240px;min-height:0;aspect-ratio:16/10}
+  .rod{font-size:.58rem;line-height:1.7;padding:.8rem 1rem}
+  .article-page{margin:1rem auto 2rem;padding:1rem}
+  .article-page h1{font-size:clamp(1.8rem,8vw,2.5rem);overflow-wrap:anywhere}
+  .article-page p{font-size:.96rem}
+  .article-page .lead{font-size:1.05rem}
+  .article-mast{gap:.35rem;font-size:.68rem;overflow-wrap:anywhere}
+  dialog{width:calc(100vw - 1rem);max-width:none;max-height:calc(100dvh - 1rem);padding:1rem}
+  .duo{grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr))}
+  dialog input,dialog textarea{min-height:44px}
+  .row{padding:.45rem}
+  .toast{width:calc(100% - 2rem);text-align:center;border-radius:12px}
+}
+
+/* Telas muito estreitas, como celulares compactos */
+@media(max-width:360px){
+  .wrap{padding-inline:.75rem}
+  .tit h1{font-size:1.55rem;letter-spacing:.07em}
+  .sub u{display:none}
+  .acts .btn{font-size:.68rem}
+  .dt{gap:.45rem;padding:.65rem}
+  .dt-more{font-size:.62rem}
+}
+
 /* Telas menores */
 @media(max-width:860px){
   #masthead{grid-template-columns:1fr}
