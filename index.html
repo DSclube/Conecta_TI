@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Newsletter Connecta TI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header id="masthead" class="wrap"></header>
+  <div id="ticker" class="ticker" aria-label="Manchetes"></div>
+  <nav class="nav" aria-label="Seções e ações">
+    <div class="wrap navin">
+      <div id="anchors" class="anchors"></div>
+      <div class="acts">
+        <select id="sel" aria-label="Escolher edição"></select>
+        <button class="btn" id="bLike" aria-pressed="false">♥ <span id="nLike">0</span></button>
+        <button class="btn" id="bShare">Compartilhar</button>
+        <button class="btn" id="bPdf">Gerar PDF</button>
+        <button class="btn ghost" id="bAdm">Administrador</button>
+      </div>
+    </div>
+  </nav>
+  <main id="out" class="wrap"><p class="vazio">Carregando edições…</p></main>
+  <footer class="rod">DESENVOLVIMENTO DE SISTEMAS • REDES DE COMPUTADORES • INFORMÁTICA PARA INTERNET • INTELIGÊNCIA ARTIFICIAL • CIBERSEGURANÇA</footer>
+  <dialog id="dlg"><div id="dlgBody"></div><p class="msg" id="msg" role="alert"></p><button class="btn cinza" id="bFechar">Fechar</button></dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
