@@ -7,10 +7,23 @@ import { initAdmin } from './js/admin.js'
 
 let eds = []
 let cur = null
-const liked = () => JSON.parse(localStorage.getItem('cti_likes') || '[]')
+let metrics = {}
+let metricsOnline = false
+let liked = JSON.parse(localStorage.getItem('cti_article_likes') || '[]')
+const metricKey = (e, article) => `${e.id}:${String(article.titulo).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+const saveLocalMetrics = () => localStorage.setItem('cti_article_metrics', JSON.stringify(metrics))
+
+function registerView(e, article) {
+  const id = metricKey(e, article)
+  metrics[id] ||= { likes: 0, views: 0 }
+  metrics[id].views++
+  saveLocalMetrics()
+  if (metricsOnline) sb.rpc('visualizar_noticia', { p_id: id }).then(({ error }) => error && toast('Não foi possível registrar a visualização'))
+}
 
 function show(e) {
   cur = e
+  $('sel').value = e.id
   const params = new URLSearchParams(location.search)
   if (params.has('data')) {
     const c = Array.isArray(e.conteudo) ? {} : e.conteudo || {}
@@ -22,21 +35,26 @@ function show(e) {
     const articles = [c.principal, ...(c.secundarias || []), ...(c.tecnologia || []), ...(c.extras || [])].filter((x) => x?.titulo)
     const slug = (s) => String(s).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     const article = articles.find((a) => slug(a.titulo) === params.get('noticia'))
-    if (article) { renderArticle(e, article); return }
+    if (article) { registerView(e, article); renderArticle(e, article, metrics, liked); return }
   }
-  renderEdition(e)
-  $('nLike').textContent = e.curtidas || 0
-  const on = liked().includes(e.id)
-  $('bLike').classList.toggle('on', on)
-  $('bLike').setAttribute('aria-pressed', on)
-  $('sel').value = e.id
+  renderEdition(e, metrics, liked)
 }
 
 async function load() {
   if (sb) {
     const { data, error } = await sb.from('edicoes').select('*').order('publicada_em', { ascending: false })
     if (error) { toast('Erro ao carregar edições'); eds = [] } else eds = data
-  } else eds = DEMO
+    if (data?.length) {
+      const result = await sb.from('noticia_metricas').select('id, curtidas, visualizacoes')
+      if (!result.error) {
+        metricsOnline = true
+        metrics = Object.fromEntries(result.data.map((row) => [row.id, { likes: row.curtidas, views: row.visualizacoes }]))
+      } else metrics = JSON.parse(localStorage.getItem('cti_article_metrics') || '{}')
+    }
+  } else {
+    eds = DEMO
+    metrics = JSON.parse(localStorage.getItem('cti_article_metrics') || '{}')
+  }
   if (!eds.length) {
     $('out').innerHTML = '<p class="vazio">Nenhuma edição publicada ainda.</p>'
     $('sel').innerHTML = ''
@@ -54,13 +72,21 @@ $('sel').onchange = (ev) => {
   show(e)
 }
 
-$('bLike').onclick = () => {
-  const L = liked(), on = L.includes(cur.id)
-  localStorage.setItem('cti_likes', JSON.stringify(on ? L.filter((i) => i !== cur.id) : [...L, cur.id]))
-  cur.curtidas = Math.max(0, (cur.curtidas || 0) + (on ? -1 : 1))
-  if (sb) sb.rpc(on ? 'descurtir' : 'curtir', { p_id: cur.id }).then((r) => r.error && toast('Não foi possível registrar a curtida'))
-  show(cur)
-}
+$('out').addEventListener('click', (ev) => {
+  const button = ev.target.closest('[data-action="like-news"]')
+  if (!button || !cur) return
+  const id = button.dataset.id, on = liked.includes(id)
+  liked = on ? liked.filter((item) => item !== id) : [...liked, id]
+  localStorage.setItem('cti_article_likes', JSON.stringify(liked))
+  metrics[id] ||= { likes: 0, views: 0 }
+  metrics[id].likes = Math.max(0, metrics[id].likes + (on ? -1 : 1))
+  saveLocalMetrics()
+  button.classList.toggle('on', !on)
+  button.setAttribute('aria-pressed', String(!on))
+  const count = button.querySelector('[data-likes-for]')
+  if (count) count.textContent = metrics[id].likes
+  if (metricsOnline) sb.rpc(on ? 'descurtir_noticia' : 'curtir_noticia', { p_id: id }).then(({ error }) => error && toast('Não foi possível registrar a curtida'))
+})
 
 $('bShare').onclick = async () => {
   const url = location.href.split('#')[0] + '#' + encodeURIComponent(cur.id)
