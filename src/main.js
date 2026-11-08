@@ -1,7 +1,7 @@
 import './css/style.css'
 import { sb } from './js/supabase.js'
 import { $, esc, toast } from './js/util.js'
-import { renderEdition, renderArticle } from './js/render.js'
+import { renderEdition, renderArticle, renderDateDetail } from './js/render.js'
 import { DEMO } from './js/demo.js'
 import { initAdmin } from './js/admin.js'
 
@@ -12,6 +12,11 @@ const liked = () => JSON.parse(localStorage.getItem('cti_likes') || '[]')
 function show(e) {
   cur = e
   const params = new URLSearchParams(location.search)
+  if (params.has('data')) {
+    const c = Array.isArray(e.conteudo) ? {} : e.conteudo || {}
+    const date = c.datas?.[Number(params.get('data'))]
+    if (date) { renderDateDetail(e, date); return }
+  }
   if (params.has('noticia')) {
     const c = Array.isArray(e.conteudo) ? {} : e.conteudo || {}
     const articles = [c.principal, ...(c.secundarias || []), ...(c.tecnologia || []), ...(c.extras || [])].filter((x) => x?.titulo)

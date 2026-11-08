@@ -11,7 +11,7 @@ const LISTAS = {
   secundarias: ['Notícias secundárias', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]],
   eventos: ['Eventos', [TXT('titulo', 'Nome do evento'), ['data', 'Data', 'date'], TXT('local', 'Local')]],
   tecnologia: ['Notícias de tecnologia', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]],
-  datas: ['Datas importantes', [['data', 'Data', 'date'], TXT('titulo', 'O que acontece')]],
+  datas: ['Datas importantes', [['data', 'Data', 'date'], TXT('titulo', 'O que acontece'), URL_('link')]],
   extras: ['Seções extras (uma seção própria para uma notícia)', [TXT('secao', 'Nome da seção'), TXT('titulo', 'Título da notícia'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]]
 }
 

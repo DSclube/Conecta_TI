@@ -173,6 +173,18 @@ time{background:var(--teal);color:white;border-radius:2px}
 .rod{border-top:3px solid var(--lime)}
 .tit{text-align:center}
 .top3>aside.col .evt{height:100%}
+.dt{text-decoration:none}
+.dt-title{color:var(--navy2)}
+.dt-more{margin-left:auto;flex:none;color:var(--azul);font-size:.72rem;font-weight:800;border-bottom:1px solid #355a7355;white-space:nowrap}
+.date-large{display:inline-flex;flex-direction:column;align-items:center;margin:1.2rem 0 0;padding:1rem 1.4rem;background:var(--navy);color:#fff}
+.date-large b{font-size:3rem;line-height:1}
+.date-large span{text-transform:uppercase;font-size:.8rem;letter-spacing:.12em}
+@media(hover:hover) and (pointer:fine){
+  .mini,.main,.card,.extra,.dt{position:relative;transition:transform .24s ease,box-shadow .24s ease}
+  .mini:hover,.main:hover,.card:hover,.extra:hover,.dt:hover{z-index:2;transform:scale(1.018);box-shadow:0 10px 28px #172a3a1c}
+  .evt li{transition:transform .2s ease}
+  .evt li:hover{transform:translateX(3px)}
+}
 @media(max-width:860px){#masthead{grid-template-columns:1fr}.article-mast{align-items:flex-start;flex-direction:column}}
 
 /* Telas menores */
