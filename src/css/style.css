@@ -208,7 +208,7 @@ time{background:var(--teal);color:white;border-radius:2px}
 @media(max-width:640px){
   .wrap{padding-inline:1rem}
   #masthead{grid-template-columns:minmax(0,1fr);gap:.9rem;padding-top:1rem;padding-bottom:.9rem}
-  .selo{justify-self:center;width:min(100%,230px);max-width:230px;padding:.65rem}
+  .selo{justify-self:stretch;width:calc(100% + 2rem);max-width:none;margin-inline:-1rem;padding:.85rem 1rem}
   .l{font-size:.9rem}
   .l.c{font-size:1rem}
   .tit{width:100%;min-width:0}
@@ -266,6 +266,7 @@ time{background:var(--teal);color:white;border-radius:2px}
 /* Telas muito estreitas, como celulares compactos */
 @media(max-width:360px){
   .wrap{padding-inline:.75rem}
+  .selo{width:calc(100% + 1.5rem);margin-inline:-.75rem}
   .tit h1{font-size:1.55rem;letter-spacing:.07em}
   .sub u{display:none}
   .acts .btn{font-size:.68rem}
