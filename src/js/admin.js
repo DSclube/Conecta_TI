@@ -15,6 +15,7 @@ const LISTAS = {
   datas: ['Datas importantes no mundo da tecnologia', [['data', 'Data', 'date'], ['titulo', 'O que acontece'], ['link', 'Link externo', 'url']], true],
   extras: ['Outras seções', [['secao', 'Nome da seção'], ['titulo', 'Título'], ['texto', 'Chamada', 'area'], ['texto_completo', 'Texto completo', 'area'], ['imagem', 'Imagem', 'image'], ['link', 'Link externo', 'url']]]
 }
+const ORDEM_SECOES = [['noticias', 'Outras notícias'], ['tecnologia', 'Tecnologia'], ['datas', 'Datas importantes'], ['extras', 'Outras seções'], ['especial_fim_de_ano', 'Especial de fim de ano']]
 
 let aoPublicar = () => {}
 let edicaoAtual = null
@@ -74,6 +75,27 @@ function atualizarControlesOrdem(rows) {
     if (up) up.disabled = index === 0
     if (down) down.disabled = index === items.length - 1
   })
+}
+
+function atualizarOrdemSecoes(rows) {
+  [...rows.children].forEach((row, index, items) => {
+    row.querySelector('[data-section-order="up"]').disabled = index === 0
+    row.querySelector('[data-section-order="down"]').disabled = index === items.length - 1
+  })
+}
+
+function criarLinhaOrdemSecao([key, title]) {
+  const row = document.createElement('div')
+  row.className = 'section-order-item'
+  row.dataset.sectionKey = key
+  row.innerHTML = `<strong>${esc(title)}</strong><div class="admin-item-actions"><button type="button" class="btn cinza" data-section-order="up" aria-label="Mover ${esc(title)} para cima" title="Mover para cima">↑</button><button type="button" class="btn cinza" data-section-order="down" aria-label="Mover ${esc(title)} para baixo" title="Mover para baixo">↓</button></div>`
+  row.querySelectorAll('[data-section-order]').forEach((button) => button.addEventListener('click', () => {
+    const rows = row.parentElement
+    if (button.dataset.sectionOrder === 'up' && row.previousElementSibling) rows.insertBefore(row, row.previousElementSibling)
+    if (button.dataset.sectionOrder === 'down' && row.nextElementSibling) rows.insertBefore(row.nextElementSibling, row)
+    atualizarOrdemSecoes(rows)
+  }))
+  return row
 }
 
 function articleCard(fields, data = {}, removable = false) {
@@ -148,7 +170,8 @@ function painel(body) {
     <div class="admin-status" id="edit-status">Nova edição</div>
     <div class="admin-meta"><label>Número da edição<input id="pn" type="number" min="1"></label><label>Ano<input id="pa" type="number" min="1" value="1"></label><label>Data de publicação<input id="pd" type="date"></label></div>
     <section class="admin-section principal-editor"><div class="section-heading"><span>01</span><div><h3>Matéria principal</h3><p>O destaque da capa do jornal.</p></div></div><div id="fp" class="admin-item">${PRINCIPAL.map(campo).join('')}</div></section>
-    <section class="admin-section special-editor"><div class="section-heading"><span>★</span><div class="section-heading-copy"><h3>Especial de fim de ano</h3><p>Escolha em qual edição o especial aparece (no final do jornal). Opcionalmente, cole uma URL ou anexe uma imagem.</p></div></div><div id="fspecial" class="admin-item">${ESPECIAL.map(campo).join('')}</div></section>
+    <section class="admin-section special-editor"><div class="section-heading"><span>★</span><div class="section-heading-copy"><h3>Especial de fim de ano</h3><p>Escolha em qual edição o especial aparece. Opcionalmente, cole uma URL ou anexe uma imagem.</p></div></div><div id="fspecial" class="admin-item">${ESPECIAL.map(campo).join('')}</div></section>
+    <section class="admin-section section-order-editor"><div class="section-heading"><span>↕</span><div class="section-heading-copy"><h3>Ordem das seções no jornal</h3><p>Escolha a sequência das seções exibidas abaixo do destaque. Use as setas para reorganizá-las.</p></div></div><div id="section-order-list" class="section-order-list"></div></section>
     ${Object.entries(LISTAS).map(([key, [title, fields, single]]) => `<section class="admin-section" data-l="${key}"><div class="section-heading"><span>${String(Object.keys(LISTAS).indexOf(key) + 2).padStart(2, '0')}</span><div class="section-heading-copy"><h3>${title}</h3><p>${single ? 'Cadastre datas e links relacionados.' : 'Adicione quantas matérias precisar.'}</p></div><div class="section-heading-actions"><button type="button" class="btn cinza remove-section">Excluir seção</button></div></div><div class="rows"></div><button type="button" class="btn cinza add">＋ Adicionar ${single ? 'data' : 'matéria'}</button></section>`).join('')}
     <section class="admin-section year-messages-admin"><div class="section-heading"><span>08</span><div class="section-heading-copy"><h3>Mensagens do especial de fim de ano</h3><p>As mensagens são anónimas e só aparecem depois da aprovação.</p></div></div><div id="year-messages-admin-list" class="year-messages-admin-list"><p class="admin-empty">Carregando mensagens…</p></div></section>
     <div class="admin-footer-actions"><button class="btn cinza" id="cancelar">Fechar</button><button class="btn azul" id="pub">Salvar edição</button></div></div>`
@@ -156,6 +179,9 @@ function painel(body) {
   $('sair').onclick = async () => { await sb.auth.signOut(); $('dlg').close() }
   $('cancelar').onclick = () => $('dlg').close()
   $('nova').onclick = () => openEdition(null)
+  const sectionOrderList = $('section-order-list')
+  ORDEM_SECOES.forEach((item) => sectionOrderList.append(criarLinhaOrdemSecao(item)))
+  atualizarOrdemSecoes(sectionOrderList)
 
   body.querySelectorAll('fieldset[data-l],section[data-l]').forEach((section) => {
     const [title, fields, single] = LISTAS[section.dataset.l]
@@ -236,6 +262,11 @@ function openEdition(edition) {
   const especial = { ...(content.especial_fim_de_ano || {}) }
   if (!especial.ativo) especial.ativo = !edition || especial.ativo === undefined ? (Number(edition?.numero) === 1 ? 'sim' : 'nao') : 'nao'
   preencher($('fspecial'), especial)
+  const sectionOrder = Array.isArray(content.ordem_secoes) ? content.ordem_secoes : []
+  const sortedOrder = [...sectionOrder.filter((key) => ORDEM_SECOES.some(([id]) => id === key)), ...ORDEM_SECOES.map(([key]) => key).filter((key) => !sectionOrder.includes(key))]
+  const orderList = $('section-order-list')
+  orderList.replaceChildren(...sortedOrder.map((key) => criarLinhaOrdemSecao(ORDEM_SECOES.find(([id]) => id === key))))
+  atualizarOrdemSecoes(orderList)
   document.querySelectorAll('#dlgBody section[data-l]').forEach((section) => {
     const key = section.dataset.l
     const rows = section.querySelector('.rows')
@@ -267,7 +298,7 @@ async function saveEdition() {
         return msg('Para cada imagem, preencha a descrição alternativa ou uma legenda descritiva para leitores de tela.')
       }
     }
-    const content = { principal: await articleData($('fp')), especial_fim_de_ano: await articleData($('fspecial')) }
+    const content = { principal: await articleData($('fp')), especial_fim_de_ano: await articleData($('fspecial')), ordem_secoes: [...$('section-order-list').children].map((row) => row.dataset.sectionKey) }
     const sections = [...document.querySelectorAll('#dlgBody section[data-l]')]
     for (const section of sections) {
       const key = section.dataset.l
