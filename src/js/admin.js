@@ -67,10 +67,19 @@ function ler(container) {
   return Object.fromEntries([...container.querySelectorAll('[data-f]')].map((el) => [el.dataset.f, el.value.trim()]))
 }
 
+function atualizarControlesOrdem(rows) {
+  [...rows.children].forEach((row, index, items) => {
+    const up = row.querySelector('[data-order="up"]')
+    const down = row.querySelector('[data-order="down"]')
+    if (up) up.disabled = index === 0
+    if (down) down.disabled = index === items.length - 1
+  })
+}
+
 function articleCard(fields, data = {}, removable = false) {
   const el = document.createElement('div')
   el.className = 'admin-item'
-  el.innerHTML = `<div class="admin-item-fields">${fields.map(campo).join('')}</div>${removable ? '<button type="button" class="btn cinza remove-item">Remover matéria</button>' : ''}`
+  el.innerHTML = `<div class="admin-item-fields">${fields.map(campo).join('')}</div>${removable ? '<div class="admin-item-actions"><button type="button" class="btn cinza" data-order="up" aria-label="Mover matéria para cima" title="Mover para cima">↑</button><button type="button" class="btn cinza" data-order="down" aria-label="Mover matéria para baixo" title="Mover para baixo">↓</button><button type="button" class="btn cinza remove-item">Remover matéria</button></div>' : ''}`
   preencher(el, data)
   bindRichText(el)
   el.querySelector('[data-image-file]')?.addEventListener('change', (ev) => {
@@ -82,7 +91,13 @@ function articleCard(fields, data = {}, removable = false) {
     preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Prévia da imagem selecionada"><span>${esc(file.name)}</span>`
     msg('')
   })
-  el.querySelector('.remove-item')?.addEventListener('click', () => el.remove())
+  el.querySelectorAll('[data-order]').forEach((button) => button.addEventListener('click', () => {
+    const rows = el.parentElement
+    if (button.dataset.order === 'up' && el.previousElementSibling) rows.insertBefore(el, el.previousElementSibling)
+    if (button.dataset.order === 'down' && el.nextElementSibling) rows.insertBefore(el.nextElementSibling, el)
+    atualizarControlesOrdem(rows)
+  }))
+  el.querySelector('.remove-item')?.addEventListener('click', () => { const rows = el.parentElement; el.remove(); atualizarControlesOrdem(rows) })
   return el
 }
 
@@ -144,7 +159,7 @@ function painel(body) {
 
   body.querySelectorAll('fieldset[data-l],section[data-l]').forEach((section) => {
     const [title, fields, single] = LISTAS[section.dataset.l]
-    section.querySelector('.add').onclick = () => section.querySelector('.rows').append(articleCard(fields, {}, true))
+    section.querySelector('.add').onclick = () => { const rows = section.querySelector('.rows'); rows.append(articleCard(fields, {}, true)); atualizarControlesOrdem(rows) }
     section.querySelector('.remove-section').onclick = () => {
       const removed = section.dataset.removed === 'true'
       if (!removed && !confirm(`Excluir a seção "${title}" e todo o seu conteúdo desta edição?`)) return
@@ -232,6 +247,7 @@ function openEdition(edition) {
     rows.replaceChildren()
     const records = Array.isArray(content[key]) ? content[key] : []
     records.forEach((item) => rows.append(articleCard(LISTAS[key][1], item, true)))
+    atualizarControlesOrdem(rows)
   })
   msg('')
 }
