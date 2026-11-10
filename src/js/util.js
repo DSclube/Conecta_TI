@@ -27,8 +27,9 @@ export const richText = (text = '') => {
 export const paras = (t) =>
   String(t || '').split(/\n\s*\n/).filter(Boolean).map((p) => `<p>${richText(p).replace(/\n/g, '<br>')}</p>`).join('')
 
-export const img = (u, cls = '') =>
-  /^https?:\/\//.test(u || '') ? `<img class="${cls}" src="${esc(u)}" alt="" loading="lazy">` : ''
+const plainAlt = (value) => String(value || '').replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1').replace(/\*\*/g, '').replace(/(^|[^*])\*([^*]+)\*/g, '$1$2').replace(/\s+/g, ' ').trim()
+export const img = (u, cls = '', alt = '') =>
+  /^https?:\/\//.test(u || '') ? `<img class="${cls}" src="${esc(u)}" alt="${esc(plainAlt(alt))}" loading="lazy">` : ''
 
 // '2026-03-02' -> ['02', 'mar']
 export const dm = (d) => {
@@ -46,8 +47,8 @@ export function toast(t) {
 
 // Mostra a imagem ou, se não houver, um espaço reservado para ela
 const ICONE = '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M4 42 24 18l12 14 8-9 16 19z" fill="currentColor"/><circle cx="46" cy="12" r="6" fill="currentColor"/></svg>'
-export const foto = (u, cls = '', caption = '') => {
-  const image = img(u, cls)
+export const foto = (u, cls = '', caption = '', alt = caption) => {
+  const image = img(u, cls, alt)
   if (!image) return `<div class="ph ${cls}" role="img" aria-label="Espaço para imagem">${ICONE}</div>`
   return caption ? `<figure class="photo-with-caption">${image}<figcaption>${richText(caption)}</figcaption></figure>` : image
 }

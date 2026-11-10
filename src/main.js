@@ -4,16 +4,18 @@ import { $, esc, toast } from './js/util.js'
 import { renderEdition, renderArticle, renderDateDetail } from './js/render.js'
 import { DEMO } from './js/demo.js'
 import { initAdmin } from './js/admin.js'
+import { initPrivacyUI, hasAnalyticsConsent } from './js/privacy.js'
 
 let eds = []
 let cur = null
 let metrics = {}
 let metricsOnline = false
-let liked = JSON.parse(localStorage.getItem('cti_article_likes') || '[]')
+let liked = hasAnalyticsConsent() ? JSON.parse(localStorage.getItem('cti_article_likes') || '[]') : []
 const metricKey = (e, article) => `${e.id}:${String(article.titulo).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
-const saveLocalMetrics = () => localStorage.setItem('cti_article_metrics', JSON.stringify(metrics))
+const saveLocalMetrics = () => { if (hasAnalyticsConsent()) localStorage.setItem('cti_article_metrics', JSON.stringify(metrics)) }
 
 function registerView(e, article) {
+  if (!hasAnalyticsConsent()) return
   const id = metricKey(e, article)
   metrics[id] ||= { likes: 0, views: 0 }
   metrics[id].views++
@@ -49,11 +51,11 @@ async function load() {
       if (!result.error) {
         metricsOnline = true
         metrics = Object.fromEntries(result.data.map((row) => [row.id, { likes: row.curtidas, views: row.visualizacoes }]))
-      } else metrics = JSON.parse(localStorage.getItem('cti_article_metrics') || '{}')
+      } else metrics = hasAnalyticsConsent() ? JSON.parse(localStorage.getItem('cti_article_metrics') || '{}') : {}
     }
   } else {
     eds = DEMO
-    metrics = JSON.parse(localStorage.getItem('cti_article_metrics') || '{}')
+    metrics = hasAnalyticsConsent() ? JSON.parse(localStorage.getItem('cti_article_metrics') || '{}') : {}
   }
   if (!eds.length) {
     $('out').innerHTML = '<p class="vazio">Nenhuma edição publicada ainda.</p>'
@@ -77,7 +79,7 @@ $('out').addEventListener('click', (ev) => {
   if (!button || !cur) return
   const id = button.dataset.id, on = liked.includes(id)
   liked = on ? liked.filter((item) => item !== id) : [...liked, id]
-  localStorage.setItem('cti_article_likes', JSON.stringify(liked))
+  if (hasAnalyticsConsent()) localStorage.setItem('cti_article_likes', JSON.stringify(liked))
   metrics[id] ||= { likes: 0, views: 0 }
   metrics[id].likes = Math.max(0, metrics[id].likes + (on ? -1 : 1))
   saveLocalMetrics()
@@ -85,7 +87,7 @@ $('out').addEventListener('click', (ev) => {
   button.setAttribute('aria-pressed', String(!on))
   const count = button.querySelector('[data-likes-for]')
   if (count) count.textContent = metrics[id].likes
-  if (metricsOnline) sb.rpc(on ? 'descurtir_noticia' : 'curtir_noticia', { p_id: id }).then(({ error }) => error && toast('Não foi possível registrar a curtida'))
+  if (hasAnalyticsConsent() && metricsOnline) sb.rpc(on ? 'descurtir_noticia' : 'curtir_noticia', { p_id: id }).then(({ error }) => error && toast('Não foi possível registrar a curtida'))
 })
 
 $('bShare').onclick = async () => {
@@ -105,4 +107,8 @@ $('anchors').addEventListener('click', (ev) => {
 })
 
 initAdmin({ onPublished: load })
+initPrivacyUI({ onConsentChange: (enabled) => {
+  liked = enabled ? JSON.parse(localStorage.getItem('cti_article_likes') || '[]') : []
+  load()
+} })
 load()

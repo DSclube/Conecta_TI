@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+  <a class="skip-link" href="#out">Pular para o conteúdo principal</a>
   <header id="masthead" class="wrap"><button class="admin-top" id="bAdm">Administrador</button></header>
   <div id="ticker" class="ticker" aria-label="Manchetes"></div>
   <nav class="nav" aria-label="Seções e ações">
@@ -23,11 +24,38 @@
       </div>
     </div>
   </nav>
-  <main id="out" class="wrap"><p class="vazio">Carregando edições…</p></main>
+  <main id="out" class="wrap" tabindex="-1"><p class="vazio">Carregando edições…</p></main>
   <footer class="rod" role="contentinfo">
     <p class="rod-credit">Desenvolvido pela Coordenação e pelo ClubeDS</p>
-    <div class="rod-contact"><span>Tem sugestão de pauta? Entre em contato com o ClubeDS: </span><a href="mailto:ds.clube00@gmail.com">ds.clube00@gmail.com</a></div>
+        <div class="rod-contact"><span>Tem sugestão de pauta? Entre em contato com o ClubeDS: </span><a href="mailto:ds.clube00@gmail.com">ds.clube00@gmail.com</a></div>
+    <nav class="legal-links" aria-label="Informações e acessibilidade"><a href="#privacidade" data-legal="privacy">Privacidade</a><span aria-hidden="true">·</span><a href="#termos" data-legal="terms">Termos de uso</a><span aria-hidden="true">·</span><button id="cookie-settings" type="button">Preferências de cookies</button><span aria-hidden="true">·</span><button id="accessibility-toggle" type="button" aria-expanded="false" aria-controls="accessibility-panel">Acessibilidade</button></nav>
   </footer>
+  <dialog id="accessibility-panel" class="accessibility-panel" aria-labelledby="accessibility-title">
+    <div class="accessibility-panel-head"><h2 id="accessibility-title">Acessibilidade</h2><button type="button" id="accessibility-close" aria-label="Fechar opções de acessibilidade">×</button></div>
+    <div class="accessibility-controls"><button type="button" id="contrast-toggle" aria-pressed="false">Alto contraste: desligado</button><button type="button" id="text-smaller" aria-label="Diminuir tamanho do texto">A−</button><button type="button" id="text-reset" aria-label="Restaurar tamanho normal do texto">A</button><button type="button" id="text-larger" aria-label="Aumentar tamanho do texto">A+</button></div>
+    <p><strong>Navegação pelo teclado:</strong> use Tab e Shift+Tab para percorrer os controles, Enter ou Espaço para ativá-los e Esc para fechar janelas.</p>
+    <p>As imagens das notícias usam descrição alternativa; links e controles têm foco visível ao navegar pelo teclado.</p>
+  </dialog>
+  <aside id="cookie-banner" class="cookie-banner" role="region" aria-label="Preferências de privacidade" hidden>
+    <div class="cookie-copy"><strong>Privacidade e armazenamento</strong><p>Usamos armazenamento necessário para manter preferências. Com sua autorização, também salvamos curtidas neste navegador e contamos visualizações das notícias. Recusar não impede a leitura do jornal.</p><div class="cookie-legal"><a href="#privacidade" data-legal="privacy">Política de privacidade</a><a href="#termos" data-legal="terms">Termos de uso</a></div></div>
+    <div class="cookie-actions"><label class="terms-accept"><input id="terms-accept" type="checkbox"><span>Li e aceito os <a href="#termos" data-legal="terms">Termos de uso</a> e tomei conhecimento da <a href="#privacidade" data-legal="privacy">Política de privacidade</a>.</span></label><div class="cookie-buttons"><button id="cookie-reject" class="btn cinza" type="button" disabled>Recusar opcionais e continuar</button><button id="cookie-accept" class="btn" type="button" disabled>Aceitar opcionais e continuar</button></div></div>
+  </aside>
+  <dialog id="legal-dialog" class="legal-dialog" aria-labelledby="legal-title"><div class="legal-dialog-head"><h2 id="legal-title">Informações legais</h2><button type="button" id="legal-close" aria-label="Fechar">×</button></div><div id="legal-content" class="legal-content"></div></dialog>
+  <template id="privacy-copy"><p class="legal-updated">Versão 1.0 · Atualizada em 10 de novembro de 2026</p>
+    <p>Esta política explica como o Connecta TI, mantido editorialmente pela Coordenação dos Cursos Técnicos em TI e pelo ClubeDS, trata informações durante o uso do jornal.</p>
+    <div class="legal-note"><strong>Identificação institucional:</strong> o ClubeDS usa <a href="mailto:ds.clube00@gmail.com">ds.clube00@gmail.com</a> como canal provisório para solicitações de privacidade. Antes da publicação definitiva, a instituição deve confirmar formalmente a entidade controladora, a base legal de cada finalidade, os prazos de retenção e o canal oficial do encarregado.</div>
+    <h3>Dados e finalidades</h3><ul><li>A leitura pública não exige criação de conta.</li><li>Se você aceitar os recursos opcionais, sua preferência de curtida fica no armazenamento local do navegador e as curtidas e visualizações são enviadas como contagens associadas à notícia, sem nome ou conta de leitor.</li><li>O login é destinado somente à administração. O e-mail e a autenticação da conta administrativa são processados pelo Supabase Auth; a senha não é exibida ao jornal.</li><li>O site é hospedado na Vercel, usa Supabase para banco, autenticação e imagens, e carrega fontes do Google Fonts. Esses prestadores podem tratar dados técnicos de conexão, como endereço IP e informações do navegador, conforme seus próprios serviços e políticas.</li></ul>
+    <h3>Cookies e armazenamento local</h3><p>O jornal não usa plataforma de anúncios nem cookies próprios de publicidade. A escolha de privacidade, a confirmação dos termos e as preferências de acessibilidade são guardadas neste navegador. O Supabase Auth pode usar armazenamento local necessário para manter a sessão administrativa. Curtidas locais e contagem de visualizações só são persistidas/enviadas após aceitar os recursos opcionais. É possível alterar a escolha em “Preferências de cookies” no rodapé; ao recusar, as métricas opcionais deixam de ser registradas neste navegador. A confirmação dos termos fica apenas no navegador e não constitui recibo individual no servidor.</p>
+    <h3>Compartilhamento, retenção e direitos</h3><p>Dados de autenticação, métricas agregadas e arquivos enviados são tratados pelos prestadores necessários à operação do site. A região de armazenamento e os prazos institucionais de retenção devem ser confirmados pela Coordenação com os fornecedores. As métricas agregadas permanecem vinculadas às notícias até que sejam removidas pelo administrador; contagens já agregadas não identificam qual visitante as gerou. Você pode solicitar informações, correção ou exclusão aplicável, bem como revogar uma autorização opcional, escrevendo para <a href="mailto:ds.clube00@gmail.com">ds.clube00@gmail.com</a>. A equipe encaminhará pedidos ao responsável institucional quando necessário.</p>
+    <h3>Links externos</h3><p>Links para outros sites seguem as políticas dos respectivos responsáveis. O Connecta TI não controla o tratamento de dados realizado por esses sites.</p>
+  </template>
+  <template id="terms-copy"><p class="legal-updated">Versão 1.0 · Atualizados em 10 de novembro de 2026</p>
+    <p>Ao marcar a caixa de confirmação apresentada no site, você declara que leu e aceita estes Termos de Uso e tomou conhecimento da Política de Privacidade do Connecta TI.</p>
+    <h3>Uso do jornal</h3><p>O site publica notícias, eventos e informações de interesse dos cursos de TI. O acesso ao jornal não depende de cadastro de leitor. Use-o de forma lícita, respeitosa e sem tentar comprometer sua segurança, disponibilidade ou funcionamento.</p>
+    <h3>Conteúdo e links</h3><p>Os textos e imagens são publicados pela equipe editorial ou por fontes indicadas. A reprodução deve respeitar direitos autorais, licenças e créditos aplicáveis. Links externos são fornecidos para conveniência; seus conteúdos e práticas são responsabilidade dos respectivos sites. Datas e informações podem mudar, então confirme detalhes importantes na fonte oficial indicada.</p>
+    <h3>Disponibilidade e contato</h3><p>A equipe procura manter o jornal disponível e correto, mas pode atualizar, corrigir ou remover conteúdo e realizar manutenção. Para comunicar erro, solicitar correção ou tratar de direitos, escreva para <a href="mailto:ds.clube00@gmail.com">ds.clube00@gmail.com</a>.</p>
+    <div class="legal-note"><strong>Nota:</strong> estes termos e a política são um texto inicial do projeto. A Coordenação e a instituição mantenedora devem validar controlador, bases legais, retenção, fornecedores e canal do encarregado com a área jurídica/privacidade antes de considerar o site formalmente adequado.</div>
+  </template>
   <dialog id="dlg"><div id="dlgBody"></div><p class="msg" id="msg" role="alert"></p><button class="btn cinza" id="bFechar">Fechar</button></dialog>
   <div class="toast" id="toast" role="status"></div>
   <script type="module" src="/src/main.js"></script>

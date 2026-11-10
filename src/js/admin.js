@@ -22,7 +22,7 @@ const checarPermissao = () => sb.rpc('is_admin')
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
 function campo([nome, rotulo, tipo = 'text']) {
-  if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><label class="image-caption-field">Legenda da imagem (opcional)<input data-f="legenda" type="text" placeholder="Ex.: estudantes durante a atividade"></label><div class="image-preview" aria-live="polite"></div></div>`
+  if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><label class="image-caption-field">Legenda da imagem (opcional)<input data-f="legenda" type="text" placeholder="Ex.: estudantes durante a atividade"></label><label class="image-caption-field">Descrição alternativa da imagem<input data-f="descricao_imagem" type="text" placeholder="Descreva o que é importante na imagem para leitores de tela"><small>Obrigatória quando a notícia tiver uma imagem; a legenda também pode servir como descrição.</small></label><div class="image-preview" aria-live="polite"></div></div>`
   if (tipo === 'area') return `<label class="rich-field">${rotulo}<span class="rich-toolbar" aria-label="Formatação do texto"><button type="button" data-format="bold" title="Negrito"><strong>B</strong></button><button type="button" data-format="italic" title="Itálico"><em>I</em></button><button type="button" data-format="link" title="Inserir link">↗ Link</button></span><textarea data-f="${nome}" rows="3" placeholder="Use os botões de formatação ou cole um link https://..."></textarea></label>`
   return `<label>${rotulo}<input data-f="${nome}" type="${tipo}"></label>`
 }
@@ -193,6 +193,16 @@ async function saveEdition() {
   button.disabled = true
   button.textContent = 'Salvando…'
   try {
+    const imageContainers = [$('fp'), ...document.querySelectorAll('#dlgBody section[data-l] .admin-item')]
+    for (const container of imageContainers) {
+      const hasImage = Boolean(container.querySelector('[data-f="imagem"]')?.value.trim() || container.querySelector('[data-image-file]')?.files?.[0])
+      const alt = container.querySelector('[data-f="descricao_imagem"]')?.value.trim()
+      const caption = container.querySelector('[data-f="legenda"]')?.value.trim()
+      if (hasImage && !alt && !caption) {
+        container.querySelector('[data-f="descricao_imagem"]')?.focus()
+        return msg('Para cada imagem, preencha a descrição alternativa ou uma legenda descritiva para leitores de tela.')
+      }
+    }
     const content = { principal: await articleData($('fp')) }
     const sections = [...document.querySelectorAll('#dlgBody section[data-l]')]
     for (const section of sections) {
