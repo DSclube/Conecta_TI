@@ -380,8 +380,8 @@ dialog:has(.admin-panel)::backdrop{background:#0d1728a8;backdrop-filter:blur(3px
 .special-news-section .sh{margin-bottom:1rem}
 .special-news{display:grid;grid-template-columns:minmax(260px,.9fr) minmax(0,1.35fr);gap:0;background:#fff;border:1px solid var(--linha);border-top:4px solid var(--lime);box-shadow:0 3px 14px #172a3a0b}
 .special-news,.special-news-media,.special-news-media img{box-shadow:none!important}
-.special-news-media{min-height:100%;background:#edf0f1}
-.special-news-media img,.special-news-media .ph{width:100%;height:100%;min-height:300px;object-fit:cover;margin:0}
+.special-news-media{align-self:start;min-height:0;background:transparent}
+.special-news-media img,.special-news-media .ph{width:100%;height:auto;min-height:0;object-fit:cover;margin:0}
 .special-news-content{padding:clamp(1.1rem,3vw,2rem)}
 .special-news-content h3{margin:.7rem 0 .6rem;font:700 clamp(1.55rem,3vw,2.35rem)/1.15 'Playfair Display',Georgia,serif;color:var(--navy2)}
 .special-news-lead{font-size:1.05rem;color:#4b5d66;margin-bottom:1.2rem}
@@ -420,7 +420,7 @@ dialog:has(.admin-panel)::backdrop{background:#0d1728a8;backdrop-filter:blur(3px
   .year-message-admin-item{display:grid;gap:.7rem}
   .year-message-admin-actions{flex-wrap:wrap}
   .special-news{grid-template-columns:minmax(0,1fr)}
-  .special-news-media img,.special-news-media .ph{min-height:220px;max-height:300px}
+  .special-news-media img,.special-news-media .ph{min-height:0;max-height:300px}
 }
 .principal-editor #fp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.2rem .8rem}
 .principal-editor #fp>label:has(textarea),.principal-editor #fp>.admin-image{grid-column:1/-1}
