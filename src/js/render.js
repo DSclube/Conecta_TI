@@ -13,11 +13,12 @@ const linkMais = (e, artigo) => {
   return `<a class="ler-mais" href="${esc(href)}" target="_blank" rel="noopener noreferrer">Ler mais <span aria-hidden="true">↗</span></a>`
 }
 
-export function renderEdition(e, metrics = {}, liked = []) {
+export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
   const c = Array.isArray(e.conteudo) ? {} : e.conteudo || {}
   const p = c.principal?.titulo ? c.principal : null
   const sec = c.secundarias || [], ev = c.eventos || [], te = c.tecnologia || []
   const da = c.datas || [], ex = (c.extras || []).filter((item) => !/sugest[aã]o de pauta/i.test(item.secao || ''))
+  const especialFimDeAno = Number(e.numero) === 1
 
   // Cabeçalho
   $('masthead').innerHTML = `
@@ -43,11 +44,14 @@ export function renderEdition(e, metrics = {}, liked = []) {
   const tech = te.length ? `<section id="tecnologia" class="sec"><h2 class="sh">Tecnologia</h2><div class="cards">${te.map((t) => `<article class="card">${foto(t.imagem, '', t.legenda, t.descricao_imagem || t.legenda || t.titulo)}<h3>${esc(t.titulo)}</h3>${paras(t.texto)}${linkMais(e, t)}${articleStats(e, t, metrics, liked)}</article>`).join('')}</div></section>` : ''
   const dates = da.length ? `<section id="datas" class="sec datas"><h2 class="sh">Datas importantes no mundo de tecnologia</h2><div class="cal">${da.map((d, i) => { const [x, m] = dm(d.data); const href = /^https?:\/\//i.test(d.link || '') ? d.link : `?edicao=${encodeURIComponent(e.id)}&data=${i}`; return `<a class="dt c${i % 5}" href="${esc(href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(d.titulo)} — abrir informações relacionadas"><time><b>${x}</b>${m}</time><span class="dt-title">${esc(d.titulo)}</span></a>` }).join('')}</div></section>` : ''
   const extras = ex.map((x) => `<section id="${slug(x.secao || x.titulo)}" class="sec"><h2 class="sh">${esc(x.secao || x.titulo)}</h2><article class="extra comimg">${foto(x.imagem, '', x.legenda, x.descricao_imagem || x.legenda || x.titulo)}<div><h3>${esc(x.titulo)}</h3>${paras(x.texto)}${linkMais(e, x)}${articleStats(e, x, metrics, liked)}</div></article></section>`).join('')
+  const approvedMessages = (yearMessages || []).filter((item) => item?.aprovada && item?.professor && item?.mensagem)
+  const messageCards = approvedMessages.map((item) => `<article class="year-message"><p>“${esc(item.mensagem)}”</p><strong>Para ${esc(item.professor)}</strong><small>Mensagem anónima</small></article>`).join('')
+  const special = especialFimDeAno ? `<section id="especial-fim-de-ano" class="sec year-special" aria-labelledby="year-special-title"><div class="year-special-inner"><span class="year-special-kicker">Seção especial</span><h2 id="year-special-title">Especial de fim de ano</h2><p class="year-special-message">Final do ano chegando deixe uma mensagem pro seu professor nota 10!!</p><p class="year-special-note">As melhores mensagens aparecerão aqui.</p><form id="year-message-form" class="year-message-form"><label>Professor homenageado<input name="professor" type="text" maxlength="120" required placeholder="Nome do professor"></label><label>Mensagem<textarea name="mensagem" maxlength="1000" minlength="10" rows="4" required placeholder="Escreva sua mensagem com carinho"></textarea></label><p class="year-message-privacy">O envio é anónimo: não pedimos nem armazenamos o nome do aluno. A mensagem será publicada somente após aprovação.</p><button class="btn year-message-submit" type="submit">Enviar mensagem</button><p id="year-message-status" class="year-message-status" role="status" aria-live="polite"></p></form>${messageCards ? `<div class="year-messages"><h3>Mensagens selecionadas</h3>${messageCards}</div>` : ''}</div></section>` : ''
 
-  $('out').innerHTML = (top + otherNews + tech + dates + extras) || '<p class="vazio">Esta edição ainda não tem conteúdo.</p>'
+  $('out').innerHTML = (top + otherNews + tech + dates + extras + special) || '<p class="vazio">Esta edição ainda não tem conteúdo.</p>'
 
   // Links de navegação só para as seções que existem
-  const nav = [[p || sec.length === 1 || ev.length, 'destaque', p ? 'Destaque' : sec.length === 1 ? 'Notícias' : 'Eventos'], [sec.length > 1, 'noticias', 'Outras notícias'], [te.length, 'tecnologia', 'Tecnologia'], [da.length, 'datas', 'Datas'], ...ex.map((x) => [1, slug(x.secao || x.titulo), x.secao || x.titulo])]
+  const nav = [[p || sec.length === 1 || ev.length, 'destaque', p ? 'Destaque' : sec.length === 1 ? 'Notícias' : 'Eventos'], [sec.length > 1, 'noticias', 'Outras notícias'], [te.length, 'tecnologia', 'Tecnologia'], [da.length, 'datas', 'Datas'], ...ex.map((x) => [1, slug(x.secao || x.titulo), x.secao || x.titulo]), [especialFimDeAno, 'especial-fim-de-ano', 'Especial de fim de ano']]
   $('anchors').innerHTML = nav.filter((n) => n[0]).map((n) => `<a href="#${n[1]}" data-s="${n[1]}">${esc(n[2])}</a>`).join('')
   document.title = `Connecta TI – Edição ${e.numero}`
 }

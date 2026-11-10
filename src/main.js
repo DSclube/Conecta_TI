@@ -10,6 +10,7 @@ let eds = []
 let cur = null
 let metrics = {}
 let metricsOnline = false
+let yearMessages = []
 let liked = hasAnalyticsConsent() ? JSON.parse(localStorage.getItem('cti_article_likes') || '[]') : []
 const metricKey = (e, article) => `${e.id}:${String(article.titulo).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
 const saveLocalMetrics = () => { if (hasAnalyticsConsent()) localStorage.setItem('cti_article_metrics', JSON.stringify(metrics)) }
@@ -39,7 +40,29 @@ function show(e) {
     const article = articles.find((a) => slug(a.titulo) === params.get('noticia'))
     if (article) { registerView(e, article); renderArticle(e, article, metrics, liked); return }
   }
-  renderEdition(e, metrics, liked)
+  renderEdition(e, metrics, liked, yearMessages)
+}
+
+async function loadYearMessages() {
+  if (!sb) return
+  const { data, error } = await sb.from('mensagens_fim_ano').select('id, professor, mensagem, aprovada, criada_em').eq('aprovada', true).order('criada_em', { ascending: false })
+  if (!error) yearMessages = data || []
+}
+
+async function submitYearMessage(form) {
+  const status = form.querySelector('.year-message-status')
+  const button = form.querySelector('button[type="submit"]')
+  const professor = form.elements.professor.value.trim()
+  const mensagem = form.elements.mensagem.value.trim()
+  if (!professor || mensagem.length < 10) return
+  if (!sb) { status.textContent = 'O envio de mensagens estará disponível quando o banco estiver configurado.'; return }
+  button.disabled = true
+  status.textContent = 'Enviando…'
+  const { error } = await sb.from('mensagens_fim_ano').insert({ professor, mensagem, aprovada: false })
+  button.disabled = false
+  if (error) { status.textContent = 'Não foi possível enviar agora. Tente novamente.'; return }
+  form.reset()
+  status.textContent = 'Mensagem enviada! Ela será avaliada pela equipe antes de aparecer no jornal.'
 }
 
 async function load() {
@@ -53,6 +76,7 @@ async function load() {
         metrics = Object.fromEntries(result.data.map((row) => [row.id, { likes: row.curtidas, views: row.visualizacoes }]))
       } else metrics = hasAnalyticsConsent() ? JSON.parse(localStorage.getItem('cti_article_metrics') || '{}') : {}
     }
+    await loadYearMessages()
   } else {
     eds = DEMO
     metrics = hasAnalyticsConsent() ? JSON.parse(localStorage.getItem('cti_article_metrics') || '{}') : {}
@@ -88,6 +112,13 @@ $('out').addEventListener('click', (ev) => {
   const count = button.querySelector('[data-likes-for]')
   if (count) count.textContent = metrics[id].likes
   if (hasAnalyticsConsent() && metricsOnline) sb.rpc(on ? 'descurtir_noticia' : 'curtir_noticia', { p_id: id }).then(({ error }) => error && toast('Não foi possível registrar a curtida'))
+})
+
+$('out').addEventListener('submit', (ev) => {
+  const form = ev.target.closest('#year-message-form')
+  if (!form) return
+  ev.preventDefault()
+  submitYearMessage(form)
 })
 
 $('bShare').onclick = async () => {

@@ -131,7 +131,8 @@ function painel(body) {
     <div class="admin-status" id="edit-status">Nova edição</div>
     <div class="admin-meta"><label>Número da edição<input id="pn" type="number" min="1"></label><label>Ano<input id="pa" type="number" min="1" value="1"></label><label>Data de publicação<input id="pd" type="date"></label></div>
     <section class="admin-section principal-editor"><div class="section-heading"><span>01</span><div><h3>Matéria principal</h3><p>O destaque da capa do jornal.</p></div></div><div id="fp" class="admin-item">${PRINCIPAL.map(campo).join('')}</div></section>
-    ${Object.entries(LISTAS).map(([key, [title, fields, single]]) => `<section class="admin-section" data-l="${key}"><div class="section-heading"><span>${String(Object.keys(LISTAS).indexOf(key) + 2).padStart(2, '0')}</span><div><h3>${title}</h3><p>${single ? 'Cadastre datas e links relacionados.' : 'Adicione quantas matérias precisar.'}</p></div></div><div class="rows"></div><button type="button" class="btn cinza add">＋ Adicionar ${single ? 'data' : 'matéria'}</button></section>`).join('')}
+    ${Object.entries(LISTAS).map(([key, [title, fields, single]]) => `<section class="admin-section" data-l="${key}"><div class="section-heading"><span>${String(Object.keys(LISTAS).indexOf(key) + 2).padStart(2, '0')}</span><div class="section-heading-copy"><h3>${title}</h3><p>${single ? 'Cadastre datas e links relacionados.' : 'Adicione quantas matérias precisar.'}</p></div><div class="section-heading-actions"><button type="button" class="btn cinza remove-section">Excluir seção</button></div></div><div class="rows"></div><button type="button" class="btn cinza add">＋ Adicionar ${single ? 'data' : 'matéria'}</button></section>`).join('')}
+    <section class="admin-section year-messages-admin"><div class="section-heading"><span>08</span><div class="section-heading-copy"><h3>Mensagens do especial de fim de ano</h3><p>As mensagens são anónimas e só aparecem depois da aprovação.</p></div></div><div id="year-messages-admin-list" class="year-messages-admin-list"><p class="admin-empty">Carregando mensagens…</p></div></section>
     <div class="admin-footer-actions"><button class="btn cinza" id="cancelar">Fechar</button><button class="btn azul" id="pub">Salvar edição</button></div></div>`
   $('pd').valueAsDate = new Date()
   $('sair').onclick = async () => { await sb.auth.signOut(); $('dlg').close() }
@@ -141,6 +142,15 @@ function painel(body) {
   body.querySelectorAll('fieldset[data-l],section[data-l]').forEach((section) => {
     const [title, fields, single] = LISTAS[section.dataset.l]
     section.querySelector('.add').onclick = () => section.querySelector('.rows').append(articleCard(fields, {}, true))
+    section.querySelector('.remove-section').onclick = () => {
+      const removed = section.dataset.removed === 'true'
+      if (!removed && !confirm(`Excluir a seção "${title}" e todo o seu conteúdo desta edição?`)) return
+      section.dataset.removed = String(!removed)
+      section.classList.toggle('section-removed', !removed)
+      section.querySelector('.rows').hidden = !removed
+      section.querySelector('.add').hidden = !removed
+      section.querySelector('.remove-section').textContent = removed ? 'Excluir seção' : 'Restaurar seção'
+    }
   })
   bindRichText(body)
   body.querySelectorAll('[data-f="imagem"]').forEach((input) => input.addEventListener('input', () => {
@@ -153,8 +163,35 @@ function painel(body) {
     if (error) return msg('Não foi possível abrir a edição: ' + error.message)
     openEdition(data)
   }
+  body.querySelector('#year-messages-admin-list').addEventListener('click', moderateYearMessage)
   $('pub').onclick = saveEdition
   loadEditions()
+  loadYearMessagesAdmin()
+}
+
+async function loadYearMessagesAdmin() {
+  const list = $('year-messages-admin-list')
+  if (!list) return
+  const { data, error } = await sb.from('mensagens_fim_ano').select('id, professor, mensagem, aprovada, criada_em').order('criada_em', { ascending: false })
+  if (error) { list.innerHTML = '<p class="admin-empty">Não foi possível carregar as mensagens. Execute o SQL atualizado.</p>'; return }
+  if (!data?.length) { list.innerHTML = '<p class="admin-empty">Ainda não há mensagens recebidas.</p>'; return }
+  list.innerHTML = data.map((item) => `<article class="year-message-admin-item" data-message-id="${esc(item.id)}"><div><strong>Para ${esc(item.professor)}</strong><p>${esc(item.mensagem)}</p><small>${item.aprovada ? 'Publicada' : 'Pendente de aprovação'} · ${esc(new Date(item.criada_em).toLocaleString('pt-BR'))}</small></div><div class="year-message-admin-actions">${item.aprovada ? '<button type="button" class="btn cinza" data-message-action="unapprove">Ocultar</button>' : '<button type="button" class="btn azul" data-message-action="approve">Aprovar</button>'}<button type="button" class="btn cinza" data-message-action="delete">Excluir</button></div></article>`).join('')
+}
+
+async function moderateYearMessage(ev) {
+  const button = ev.target.closest('[data-message-action]')
+  if (!button) return
+  const item = button.closest('[data-message-id]')
+  const id = item?.dataset.messageId
+  if (!id) return
+  const action = button.dataset.messageAction
+  if (action === 'delete' && !confirm('Excluir esta mensagem definitivamente?')) return
+  button.disabled = true
+  const result = action === 'delete'
+    ? await sb.from('mensagens_fim_ano').delete().eq('id', id)
+    : await sb.from('mensagens_fim_ano').update({ aprovada: action === 'approve' }).eq('id', id)
+  if (result.error) msg('Não foi possível atualizar a mensagem: ' + result.error.message)
+  else { toast(action === 'delete' ? 'Mensagem excluída.' : action === 'approve' ? 'Mensagem aprovada.' : 'Mensagem ocultada.'); await loadYearMessagesAdmin(); await aoPublicar() }
 }
 
 async function loadEditions() {
@@ -181,6 +218,11 @@ function openEdition(edition) {
   document.querySelectorAll('#dlgBody section[data-l]').forEach((section) => {
     const key = section.dataset.l
     const rows = section.querySelector('.rows')
+    section.dataset.removed = 'false'
+    section.classList.remove('section-removed')
+    section.querySelector('.remove-section').textContent = 'Excluir seção'
+    section.querySelector('.rows').hidden = false
+    section.querySelector('.add').hidden = false
     rows.replaceChildren()
     const records = Array.isArray(content[key]) ? content[key] : []
     records.forEach((item) => rows.append(articleCard(LISTAS[key][1], item, true)))
@@ -207,6 +249,10 @@ async function saveEdition() {
     const sections = [...document.querySelectorAll('#dlgBody section[data-l]')]
     for (const section of sections) {
       const key = section.dataset.l
+      if (section.dataset.removed === 'true') {
+        content[key] = []
+        continue
+      }
       const rows = [...section.querySelectorAll('.admin-item')]
       const records = []
       for (const row of rows) {

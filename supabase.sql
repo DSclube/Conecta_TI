@@ -86,6 +86,34 @@ revoke all on function public.descurtir_noticia(text) from public;
 revoke all on function public.visualizar_noticia(text) from public;
 grant execute on function public.curtir_noticia(text), public.descurtir_noticia(text), public.visualizar_noticia(text) to anon, authenticated;
 
+-- Mensagens anónimas do especial de fim de ano.
+-- Não existe campo para nome do aluno: somente o professor homenageado e a mensagem são armazenados.
+create table if not exists public.mensagens_fim_ano (
+  id uuid primary key default gen_random_uuid(),
+  professor text not null check (char_length(btrim(professor)) between 2 and 120),
+  mensagem text not null check (char_length(btrim(mensagem)) between 10 and 1000),
+  aprovada boolean not null default false,
+  criada_em timestamptz not null default now()
+);
+create index if not exists mensagens_fim_ano_status_idx on public.mensagens_fim_ano (aprovada, criada_em desc);
+alter table public.mensagens_fim_ano enable row level security;
+drop policy if exists "leitura pública de mensagens aprovadas" on public.mensagens_fim_ano;
+create policy "leitura pública de mensagens aprovadas" on public.mensagens_fim_ano
+  for select using (aprovada = true or (select public.is_admin()));
+drop policy if exists "envio público de mensagens" on public.mensagens_fim_ano;
+create policy "envio público de mensagens" on public.mensagens_fim_ano
+  for insert to anon, authenticated
+  with check (aprovada = false and char_length(btrim(professor)) between 2 and 120 and char_length(btrim(mensagem)) between 10 and 1000);
+drop policy if exists "admin modera mensagens" on public.mensagens_fim_ano;
+create policy "admin modera mensagens" on public.mensagens_fim_ano
+  for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+drop policy if exists "admin exclui mensagens" on public.mensagens_fim_ano;
+create policy "admin exclui mensagens" on public.mensagens_fim_ano
+  for delete to authenticated using ((select public.is_admin()));
+grant select on public.mensagens_fim_ano to anon, authenticated;
+grant insert on public.mensagens_fim_ano to anon, authenticated;
+grant update, delete on public.mensagens_fim_ano to authenticated;
+
 -- Imagens das matérias: leitura pública para exibição no jornal e gestão só pelo administrador.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
