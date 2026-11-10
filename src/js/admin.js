@@ -7,7 +7,7 @@ const PRINCIPAL = [
   ['texto_completo', 'Texto completo (opcional)', 'area'], ['imagem', 'URL da imagem (opcional)', 'image'],
   ['link', 'Link externo da notícia (opcional)', 'url']
 ]
-const ESPECIAL = [['imagem', 'Imagem do especial', 'image']]
+const ESPECIAL = [['ativo', 'Exibir o especial de fim de ano nesta edição?', 'toggle'], ['imagem', 'Imagem do especial', 'image']]
 const LISTAS = {
   secundarias: ['Notícias secundárias', [['titulo', 'Título'], ['texto', 'Chamada', 'area'], ['texto_completo', 'Texto completo', 'area'], ['imagem', 'Imagem', 'image'], ['link', 'Link externo', 'url']]],
   eventos: ['Próximos eventos', [['titulo', 'Nome do evento'], ['data', 'Data', 'date'], ['local', 'Local ou link']]],
@@ -23,6 +23,7 @@ const checarPermissao = () => sb.rpc('is_admin')
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
 function campo([nome, rotulo, tipo = 'text']) {
+  if (tipo === 'toggle') return `<label class="special-toggle">${rotulo}<select data-f="${nome}"><option value="nao">Não exibir</option><option value="sim">Sim, exibir nesta edição</option></select></label>`
   if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><label class="image-caption-field">Legenda da imagem (opcional)<input data-f="legenda" type="text" placeholder="Ex.: estudantes durante a atividade"></label><label class="image-caption-field">Descrição alternativa da imagem<input data-f="descricao_imagem" type="text" placeholder="Descreva o que é importante na imagem para leitores de tela"><small>Obrigatória quando a notícia tiver uma imagem; a legenda também pode servir como descrição.</small></label><div class="image-preview" aria-live="polite"></div></div>`
   if (tipo === 'area') return `<label class="rich-field">${rotulo}<span class="rich-toolbar" aria-label="Formatação do texto"><button type="button" data-format="bold" title="Negrito"><strong>B</strong></button><button type="button" data-format="italic" title="Itálico"><em>I</em></button><button type="button" data-format="link" title="Inserir link">↗ Link</button></span><textarea data-f="${nome}" rows="3" placeholder="Use os botões de formatação ou cole um link https://..."></textarea></label>`
   return `<label>${rotulo}<input data-f="${nome}" type="${tipo}"></label>`
@@ -132,7 +133,7 @@ function painel(body) {
     <div class="admin-status" id="edit-status">Nova edição</div>
     <div class="admin-meta"><label>Número da edição<input id="pn" type="number" min="1"></label><label>Ano<input id="pa" type="number" min="1" value="1"></label><label>Data de publicação<input id="pd" type="date"></label></div>
     <section class="admin-section principal-editor"><div class="section-heading"><span>01</span><div><h3>Matéria principal</h3><p>O destaque da capa do jornal.</p></div></div><div id="fp" class="admin-item">${PRINCIPAL.map(campo).join('')}</div></section>
-    <section class="admin-section special-editor"><div class="section-heading"><span>★</span><div class="section-heading-copy"><h3>Imagem do especial de fim de ano</h3><p>Usada apenas no final da edição nº 1. Cole uma URL ou anexe uma imagem.</p></div></div><div id="fspecial" class="admin-item">${ESPECIAL.map(campo).join('')}</div></section>
+    <section class="admin-section special-editor"><div class="section-heading"><span>★</span><div class="section-heading-copy"><h3>Especial de fim de ano</h3><p>Escolha em qual edição o especial aparece (no final do jornal). Opcionalmente, cole uma URL ou anexe uma imagem.</p></div></div><div id="fspecial" class="admin-item">${ESPECIAL.map(campo).join('')}</div></section>
     ${Object.entries(LISTAS).map(([key, [title, fields, single]]) => `<section class="admin-section" data-l="${key}"><div class="section-heading"><span>${String(Object.keys(LISTAS).indexOf(key) + 2).padStart(2, '0')}</span><div class="section-heading-copy"><h3>${title}</h3><p>${single ? 'Cadastre datas e links relacionados.' : 'Adicione quantas matérias precisar.'}</p></div><div class="section-heading-actions"><button type="button" class="btn cinza remove-section">Excluir seção</button></div></div><div class="rows"></div><button type="button" class="btn cinza add">＋ Adicionar ${single ? 'data' : 'matéria'}</button></section>`).join('')}
     <section class="admin-section year-messages-admin"><div class="section-heading"><span>08</span><div class="section-heading-copy"><h3>Mensagens do especial de fim de ano</h3><p>As mensagens são anónimas e só aparecem depois da aprovação.</p></div></div><div id="year-messages-admin-list" class="year-messages-admin-list"><p class="admin-empty">Carregando mensagens…</p></div></section>
     <div class="admin-footer-actions"><button class="btn cinza" id="cancelar">Fechar</button><button class="btn azul" id="pub">Salvar edição</button></div></div>`
@@ -217,7 +218,9 @@ function openEdition(edition) {
   $('pa').value = edition?.ano ?? 1
   $('pd').value = edition?.publicada_em || new Date().toISOString().slice(0, 10)
   preencher($('fp'), content.principal || {})
-  preencher($('fspecial'), content.especial_fim_de_ano || {})
+  const especial = { ...(content.especial_fim_de_ano || {}) }
+  if (!especial.ativo) especial.ativo = !edition || especial.ativo === undefined ? (Number(edition?.numero) === 1 ? 'sim' : 'nao') : 'nao'
+  preencher($('fspecial'), especial)
   document.querySelectorAll('#dlgBody section[data-l]').forEach((section) => {
     const key = section.dataset.l
     const rows = section.querySelector('.rows')
