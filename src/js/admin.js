@@ -4,15 +4,17 @@ import { $, toast } from './util.js'
 const TXT = (n, l) => [n, l]
 const AREA = (n, l) => [n, l, 'area']
 const URL_ = (n) => [n, 'URL da imagem (opcional)', 'url']
+const LINK_ = ['link', 'Link externo da notícia (opcional)', 'url']
+const EMAIL_ADMIN = 'ds.clube00@gmail.com'
 
 const COMPLETO = AREA('texto_completo', 'Texto completo (opcional; exibido ao abrir “Ler mais”)')
-const PRINCIPAL = [TXT('titulo', 'Título'), AREA('resumo', 'Resumo (uma ou duas frases)'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]
+const PRINCIPAL = [TXT('titulo', 'Título'), AREA('resumo', 'Resumo (uma ou duas frases)'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]
 const LISTAS = {
-  secundarias: ['Notícias secundárias', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]],
+  secundarias: ['Notícias secundárias', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]],
   eventos: ['Eventos', [TXT('titulo', 'Nome do evento'), ['data', 'Data', 'date'], TXT('local', 'Local')]],
-  tecnologia: ['Notícias de tecnologia', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]],
-  datas: ['Datas importantes', [['data', 'Data', 'date'], TXT('titulo', 'O que acontece'), URL_('link')]],
-  extras: ['Seções extras (uma seção própria para uma notícia)', [TXT('secao', 'Nome da seção'), TXT('titulo', 'Título da notícia'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem')]]
+  tecnologia: ['Notícias de tecnologia', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]],
+  datas: ['Datas importantes', [['data', 'Data', 'date'], TXT('titulo', 'O que acontece'), LINK_]],
+  extras: ['Seções extras (uma seção própria para uma notícia)', [TXT('secao', 'Nome da seção'), TXT('titulo', 'Título da notícia'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]]
 }
 
 const campo = ([n, l, t = 'text']) =>
@@ -20,6 +22,7 @@ const campo = ([n, l, t = 'text']) =>
 const ler = (el) => Object.fromEntries([...el.querySelectorAll('[data-f]')].map((i) => [i.dataset.f, i.value.trim()]))
 let aoPublicar = () => {}
 const msg = (t) => ($('msg').textContent = t)
+const checarPermissao = () => sb.rpc('is_admin')
 
 function login(body) {
   body.innerHTML = `<h3>Entrar como administrador</h3>
@@ -27,8 +30,19 @@ function login(body) {
     <label>Senha<input id="pw" type="password" autocomplete="current-password"></label>
     <p><button class="btn azul" id="go">Entrar</button></p>`
   $('go').onclick = async () => {
-    const { error } = await sb.auth.signInWithPassword({ email: $('em').value, password: $('pw').value })
+    const email = $('em').value.trim().toLowerCase()
+    if (email !== EMAIL_ADMIN) return msg('Este painel está restrito à conta administradora autorizada.')
+    const { error } = await sb.auth.signInWithPassword({ email, password: $('pw').value })
     if (error) return msg('E-mail ou senha incorretos.')
+    const { data: autorizado, error: erroPermissao } = await checarPermissao()
+    if (erroPermissao) {
+      await sb.auth.signOut()
+      return msg('Não foi possível validar o acesso. Confira se supabase.sql já foi executado.')
+    }
+    if (autorizado !== true) {
+      await sb.auth.signOut()
+      return msg('Esta conta não possui autorização de administrador no banco de dados.')
+    }
     msg('')
     painel(body)
   }
@@ -63,6 +77,10 @@ function painel(body) {
       conteudo[fs.dataset.l] = [...fs.querySelectorAll('.row')].map(ler).filter((o) => Object.values(o).some(Boolean))
     })
     if (!$('pn').value || !conteudo.principal.titulo) return msg('Informe o número da edição e o título da notícia principal.')
+    const noticias = [conteudo.principal, ...(conteudo.secundarias || []), ...(conteudo.tecnologia || []), ...(conteudo.extras || [])]
+    const urls = [...noticias.flatMap((n) => [n.link, n.imagem]), ...(conteudo.datas || []).map((d) => d.link)]
+    const linkInvalido = urls.some((url) => url && !/^https?:\/\//i.test(url))
+    if (linkInvalido) return msg('Os links da notícia e da imagem devem começar com http:// ou https://.')
     const { error } = await sb.from('edicoes').insert({ numero: +$('pn').value, ano: +$('pa').value, publicada_em: $('pd').value, conteudo })
     if (error) return msg('Não foi possível publicar (a conta é de administrador?): ' + error.message)
     $('dlg').close()
@@ -75,14 +93,26 @@ export function initAdmin({ onPublished }) {
   aoPublicar = onPublished
   const body = $('dlgBody')
   $('bFechar').onclick = () => $('dlg').close()
-  $('bAdm').onclick = async () => {
+  document.addEventListener('click', async (ev) => {
+    if (!ev.target.closest('#bAdm')) return
     msg('')
     if (!sb) {
       body.innerHTML = '<h3>Supabase não configurado</h3><p>Copie <code>.env.example</code> para <code>.env</code> e preencha as duas variáveis para habilitar login e publicação.</p>'
     } else {
       const { data } = await sb.auth.getSession()
-      data.session ? painel(body) : login(body)
+      if (!data.session) login(body)
+      else {
+        const { data: autorizado, error: erroPermissao } = await checarPermissao()
+        if (erroPermissao) {
+          await sb.auth.signOut()
+          body.innerHTML = '<h3>Configuração incompleta</h3><p>Não foi possível validar o acesso. Confira se supabase.sql já foi executado.</p>'
+        } else if (autorizado === true) painel(body)
+        else {
+          await sb.auth.signOut()
+          body.innerHTML = '<h3>Acesso restrito</h3><p>Esta conta não está autorizada para administrar o jornal.</p>'
+        }
+      }
     }
     $('dlg').showModal()
-  }
+  })
 }
