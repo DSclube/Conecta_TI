@@ -1,22 +1,8 @@
 # Connecta TI
 
-## Configurar o Supabase
+O **Connecta TI** é o jornal digital dos cursos de Tecnologia da Informação do CIMATEC. Criado pela Coordenação e pelo ClubeDS, reúne notícias, projetos, eventos e datas importantes do mundo da tecnologia.
 
-1. Crie um projeto no Supabase.
-2. Em **Authentication → Users**, crie a única conta do jornal para `ds.clube00@gmail.com` e defina a senha diretamente no painel. Não coloque a senha em arquivos do projeto.
-3. Em **Authentication → Settings**, desative novos cadastros públicos. O site só oferece entrada, não cadastro.
-4. Execute `supabase.sql` no SQL Editor. O script cria as tabelas de edições e métricas, ativa RLS, configura o armazenamento de imagens e associa o usuário autorizado como administrador. Se já executou uma versão anterior, execute novamente o arquivo atualizado para criar o bucket e as permissões de imagens; o script pode ser reaplicado.
-5. Copie `.env.example` para `.env` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` com os valores do projeto.
-6. No serviço de hospedagem, configure as mesmas duas variáveis e publique o site.
+Cada edição aproxima estudantes e comunidade das iniciativas e novidades que movimentam a área de TI.
 
-A chave publicável pode ser usada no navegador porque o acesso aos dados é controlado pelas políticas RLS. Nunca use uma chave `secret` ou `service_role` no site. O Supabase Auth gerencia o hash da senha; ela não fica no SQL nem no JavaScript.
-
-O administrador pode selecionar uma edição publicada para editar, ou criar uma nova. Cada notícia aceita uma URL de imagem ou um arquivo enviado pelo painel (JPEG, PNG, WebP ou GIF, até 5 MB), uma legenda opcional e um link externo opcional. As imagens ficam no bucket público `connecta-ti-images`; apenas o administrador autenticado pode enviar, alterar ou remover arquivos. Textos aceitam links e formatação em negrito/itálico. O jornal organiza várias notícias em cards responsivos. O ícone do ClubeDS é usado como favicon e ícone de tela inicial.
-
-O site inclui uma política de privacidade e termos em formato inicial, um checkbox de ciência/aceite e uma escolha de métricas opcionais. A recusa impede novas contagens de curtidas/visualizações e apaga as preferências locais de métricas; contagens já agregadas no banco não identificam visitantes. Antes da publicação definitiva, a instituição precisa validar a entidade controladora, bases legais, prazos de retenção, região dos fornecedores e contato do encarregado. O aceite dos termos é guardado apenas no navegador, não como comprovante individual no servidor, e estes textos não substituem análise jurídica.
-
-O botão **Acessibilidade** oferece alto contraste, ajuste de tamanho de texto e instruções de teclado. No painel administrativo, informe descrição alternativa da imagem ou uma legenda descritiva para leitores de tela.
-
-## Rodar localmente
-
-Instale as dependências com `npm install` e inicie o projeto com `npm run dev`.
+**Acesse o jornal:** [conecta-ti-bvgu.vercel.app](https://conecta-ti-bvgu.vercel.app)
+cie o projeto com `npm run dev`.
