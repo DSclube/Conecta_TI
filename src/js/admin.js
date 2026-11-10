@@ -7,6 +7,7 @@ const PRINCIPAL = [
   ['texto_completo', 'Texto completo (opcional)', 'area'], ['imagem', 'URL da imagem (opcional)', 'image'],
   ['link', 'Link externo da notícia (opcional)', 'url']
 ]
+const ESPECIAL = [['imagem', 'Imagem do especial', 'image']]
 const LISTAS = {
   secundarias: ['Notícias secundárias', [['titulo', 'Título'], ['texto', 'Chamada', 'area'], ['texto_completo', 'Texto completo', 'area'], ['imagem', 'Imagem', 'image'], ['link', 'Link externo', 'url']]],
   eventos: ['Próximos eventos', [['titulo', 'Nome do evento'], ['data', 'Data', 'date'], ['local', 'Local ou link']]],
@@ -131,6 +132,7 @@ function painel(body) {
     <div class="admin-status" id="edit-status">Nova edição</div>
     <div class="admin-meta"><label>Número da edição<input id="pn" type="number" min="1"></label><label>Ano<input id="pa" type="number" min="1" value="1"></label><label>Data de publicação<input id="pd" type="date"></label></div>
     <section class="admin-section principal-editor"><div class="section-heading"><span>01</span><div><h3>Matéria principal</h3><p>O destaque da capa do jornal.</p></div></div><div id="fp" class="admin-item">${PRINCIPAL.map(campo).join('')}</div></section>
+    <section class="admin-section special-editor"><div class="section-heading"><span>★</span><div class="section-heading-copy"><h3>Imagem do especial de fim de ano</h3><p>Usada apenas no final da edição nº 1. Cole uma URL ou anexe uma imagem.</p></div></div><div id="fspecial" class="admin-item">${ESPECIAL.map(campo).join('')}</div></section>
     ${Object.entries(LISTAS).map(([key, [title, fields, single]]) => `<section class="admin-section" data-l="${key}"><div class="section-heading"><span>${String(Object.keys(LISTAS).indexOf(key) + 2).padStart(2, '0')}</span><div class="section-heading-copy"><h3>${title}</h3><p>${single ? 'Cadastre datas e links relacionados.' : 'Adicione quantas matérias precisar.'}</p></div><div class="section-heading-actions"><button type="button" class="btn cinza remove-section">Excluir seção</button></div></div><div class="rows"></div><button type="button" class="btn cinza add">＋ Adicionar ${single ? 'data' : 'matéria'}</button></section>`).join('')}
     <section class="admin-section year-messages-admin"><div class="section-heading"><span>08</span><div class="section-heading-copy"><h3>Mensagens do especial de fim de ano</h3><p>As mensagens são anónimas e só aparecem depois da aprovação.</p></div></div><div id="year-messages-admin-list" class="year-messages-admin-list"><p class="admin-empty">Carregando mensagens…</p></div></section>
     <div class="admin-footer-actions"><button class="btn cinza" id="cancelar">Fechar</button><button class="btn azul" id="pub">Salvar edição</button></div></div>`
@@ -215,6 +217,7 @@ function openEdition(edition) {
   $('pa').value = edition?.ano ?? 1
   $('pd').value = edition?.publicada_em || new Date().toISOString().slice(0, 10)
   preencher($('fp'), content.principal || {})
+  preencher($('fspecial'), content.especial_fim_de_ano || {})
   document.querySelectorAll('#dlgBody section[data-l]').forEach((section) => {
     const key = section.dataset.l
     const rows = section.querySelector('.rows')
@@ -235,7 +238,7 @@ async function saveEdition() {
   button.disabled = true
   button.textContent = 'Salvando…'
   try {
-    const imageContainers = [$('fp'), ...document.querySelectorAll('#dlgBody section[data-l] .admin-item')]
+    const imageContainers = [$('fp'), $('fspecial'), ...document.querySelectorAll('#dlgBody section[data-l] .admin-item')]
     for (const container of imageContainers) {
       const hasImage = Boolean(container.querySelector('[data-f="imagem"]')?.value.trim() || container.querySelector('[data-image-file]')?.files?.[0])
       const alt = container.querySelector('[data-f="descricao_imagem"]')?.value.trim()
@@ -245,7 +248,7 @@ async function saveEdition() {
         return msg('Para cada imagem, preencha a descrição alternativa ou uma legenda descritiva para leitores de tela.')
       }
     }
-    const content = { principal: await articleData($('fp')) }
+    const content = { principal: await articleData($('fp')), especial_fim_de_ano: await articleData($('fspecial')) }
     const sections = [...document.querySelectorAll('#dlgBody section[data-l]')]
     for (const section of sections) {
       const key = section.dataset.l
@@ -263,7 +266,7 @@ async function saveEdition() {
     }
     if (!$('pn').value || !content.principal.titulo) return msg('Informe o número da edição e o título da matéria principal.')
     const articles = [content.principal, ...content.secundarias, ...content.tecnologia, ...content.extras]
-    const urls = [...articles.flatMap((item) => [item.link, item.imagem]), ...content.datas.map((item) => item.link)]
+    const urls = [...articles.flatMap((item) => [item.link, item.imagem]), content.especial_fim_de_ano.imagem, ...content.datas.map((item) => item.link)]
     if (urls.some((url) => url && !/^https?:\/\//i.test(url))) return msg('Os links da notícia e da imagem devem começar com http:// ou https://.')
     const record = { numero: Number($('pn').value), ano: Number($('pa').value) || 1, publicada_em: $('pd').value, conteudo: content }
     let result
