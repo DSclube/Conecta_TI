@@ -23,7 +23,35 @@ const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<
 
 function campo([nome, rotulo, tipo = 'text']) {
   if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><div class="image-preview" aria-live="polite"></div></div>`
-  return `<label>${rotulo}${tipo === 'area' ? `<textarea data-f="${nome}" rows="3"></textarea>` : `<input data-f="${nome}" type="${tipo}">`}</label>`
+  if (tipo === 'area') return `<label class="rich-field">${rotulo}<span class="rich-toolbar" aria-label="Formatação do texto"><button type="button" data-format="bold" title="Negrito"><strong>B</strong></button><button type="button" data-format="italic" title="Itálico"><em>I</em></button><button type="button" data-format="link" title="Inserir link">↗ Link</button></span><textarea data-f="${nome}" rows="3" placeholder="Use os botões de formatação ou cole um link https://..."></textarea></label>`
+  return `<label>${rotulo}<input data-f="${nome}" type="${tipo}"></label>`
+}
+
+function bindRichText(container) {
+  container.querySelectorAll('.rich-field').forEach((field) => {
+    const area = field.querySelector('textarea')
+    field.querySelectorAll('[data-format]').forEach((button) => {
+      button.onclick = () => {
+        const format = button.dataset.format
+        const start = area.selectionStart, end = area.selectionEnd
+        const selected = area.value.slice(start, end)
+        let before, after, replacement
+        if (format === 'bold') { before = '**'; after = '**' }
+        else if (format === 'italic') { before = '*'; after = '*' }
+        else {
+          const url = prompt('Cole o endereço do link (começando com https:// ou http://):')
+          if (!url) return
+          if (!/^https?:\/\//i.test(url.trim())) return msg('O endereço do link deve começar com http:// ou https://.')
+          const label = selected || prompt('Qual texto deve aparecer como link?')
+          if (!label) return
+          replacement = `[${label}](${url.trim()})`
+        }
+        area.setRangeText(replacement ?? `${before}${selected}${after}`, start, end, 'select')
+        if (format === 'link') area.setSelectionRange(start + replacement.length)
+        area.focus()
+      }
+    })
+  })
 }
 
 function preencher(container, dados = {}) {
@@ -42,6 +70,7 @@ function articleCard(fields, data = {}, removable = false) {
   el.className = 'admin-item'
   el.innerHTML = `<div class="admin-item-fields">${fields.map(campo).join('')}</div>${removable ? '<button type="button" class="btn cinza remove-item">Remover matéria</button>' : ''}`
   preencher(el, data)
+  bindRichText(el)
   el.querySelector('[data-image-file]')?.addEventListener('change', (ev) => {
     const file = ev.target.files?.[0]
     const preview = el.querySelector('.image-preview')
@@ -112,6 +141,7 @@ function painel(body) {
     const [title, fields, single] = LISTAS[section.dataset.l]
     section.querySelector('.add').onclick = () => section.querySelector('.rows').append(articleCard(fields, {}, true))
   })
+  bindRichText(body)
   body.querySelectorAll('[data-f="imagem"]').forEach((input) => input.addEventListener('input', () => {
     const preview = input.closest('.admin-image')?.querySelector('.image-preview')
     preview.innerHTML = input.value ? `<img src="${esc(input.value)}" alt="Prévia da imagem" onerror="this.parentElement.textContent='Não foi possível carregar esta imagem.'">` : ''

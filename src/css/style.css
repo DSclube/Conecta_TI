@@ -369,3 +369,12 @@ dialog:has(.admin-panel)::backdrop{background:#0d1728a8;backdrop-filter:blur(3px
 .principal-editor #fp>label:has(textarea),.principal-editor #fp>.admin-image{grid-column:1/-1}
 @media(max-width:640px){.principal-editor #fp{grid-template-columns:minmax(0,1fr)}.principal-editor #fp>label:has(textarea),.principal-editor #fp>.admin-image{grid-column:1}}
 dialog:has(.admin-panel) > #bFechar,dialog:has(.admin-panel) > #msg{display:none}
+/* Formatação editorial e links inseridos nas matérias */
+.rich-toolbar{display:flex;gap:.35rem;margin-top:.35rem}
+.rich-toolbar button{min-width:2rem;min-height:1.9rem;padding:.2rem .55rem;border:1px solid #cbd2e1;border-radius:6px;background:#f1f3f8;color:var(--navy2);font:600 .78rem 'DM Sans',system-ui,sans-serif;cursor:pointer}
+.rich-toolbar button:hover{background:#e5e9f4;border-color:#97a4c0}
+.rich-toolbar button[data-format="link"]{font-weight:700}
+.admin-item textarea{margin-top:.4rem}
+.main p a,.mini p a,.card p a,.extra p a,.article-page p a,.evt small a{color:#24568a;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.evt small a{color:#fff}
+.main p a:hover,.mini p a:hover,.card p a:hover,.extra p a:hover,.article-page p a:hover,.evt small a:hover{opacity:.78}

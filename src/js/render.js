@@ -1,4 +1,4 @@
-import { $, esc, paras, foto, dm, longDate } from './util.js'
+import { $, esc, paras, foto, dm, longDate, richText } from './util.js'
 
 const slug = (s) => String(s).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const metricId = (e, article) => `${e.id}:${slug(article.titulo)}`
@@ -35,7 +35,7 @@ export function renderEdition(e, metrics = {}, liked = []) {
   // Bloco principal: o número de colunas depende do que foi preenchido
   const left = sec.length === 1 ? `<div class="col">${sec.map((s) => `<article class="mini"><h3>${esc(s.titulo)}</h3>${foto(s.imagem)}${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div>` : ''
   const center = p ? `<article class="main"><span class="rot">Destaque</span>${foto(p.imagem, 'big')}<h2>${esc(p.titulo)}</h2>${p.resumo ? `<p class="lead">${esc(p.resumo)}</p>` : ''}${paras(p.texto)}${linkMais(e, p)}${articleStats(e, p, metrics, liked)}</article>` : ''
-  const right = ev.length ? `<aside class="col"><div class="evt"><h3>Próximos eventos</h3><ul>${ev.map((v) => { const [d, m] = dm(v.data); return `<li><time><b>${d}</b>${m}</time><div><strong>${esc(v.titulo)}</strong><small>${esc(v.local)}</small></div></li>` }).join('')}</ul></div></aside>` : ''
+  const right = ev.length ? `<aside class="col"><div class="evt"><h3>Próximos eventos</h3><ul>${ev.map((v) => { const [d, m] = dm(v.data); return `<li><time><b>${d}</b>${m}</time><div><strong>${esc(v.titulo)}</strong><small>${richText(v.local || '')}</small></div></li>` }).join('')}</ul></div></aside>` : ''
   const cols = [[left, '.85fr'], [center, '1.8fr'], [right, '.9fr']].filter((x) => x[0])
   const top = cols.length ? `<section id="destaque" class="top3" style="--cols:${cols.map((x) => x[1]).join(' ')}">${cols.map((x) => x[0]).join('')}</section>` : ''
 

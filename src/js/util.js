@@ -3,8 +3,29 @@ export const $ = (id) => document.getElementById(id)
 export const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
+// Texto simples com uma pequena sintaxe segura: **negrito**, *itálico*, [texto](URL).
+// URLs digitadas diretamente também viram links; nenhuma tag HTML do conteúdo é confiada.
+export const richText = (text = '') => {
+  let value = esc(text)
+  const links = []
+  value = value.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/gi, (_, label, url) => {
+    const token = `%%SAFE_LINK_${links.length}%%`
+    links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`)
+    return token
+  })
+  value = value.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+  value = value.replace(/https?:\/\/[^\s<]+/gi, (raw) => {
+    const suffix = raw.match(/[.,!?;:)\]]+$/)?.[0] || ''
+    const url = suffix ? raw.slice(0, -suffix.length) : raw
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${suffix}`
+  })
+  value = value.replace(/%%SAFE_LINK_(\d+)%%/g, (_, index) => links[Number(index)])
+  return value
+}
+
 export const paras = (t) =>
-  String(t || '').split(/\n\s*\n/).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join('')
+  String(t || '').split(/\n\s*\n/).filter(Boolean).map((p) => `<p>${richText(p).replace(/\n/g, '<br>')}</p>`).join('')
 
 export const img = (u, cls = '') =>
   /^https?:\/\//.test(u || '') ? `<img class="${cls}" src="${esc(u)}" alt="" loading="lazy">` : ''
