@@ -380,7 +380,7 @@ dialog:has(.admin-panel)::backdrop{background:#0d1728a8;backdrop-filter:blur(3px
 .special-news-section .sh{margin-bottom:1rem}
 .special-news{display:grid;grid-template-columns:minmax(260px,.9fr) minmax(0,1.35fr);gap:0;background:#fff;border:1px solid var(--linha);border-top:4px solid var(--lime);box-shadow:0 3px 14px #172a3a0b}
 .special-news,.special-news-media,.special-news-media img{box-shadow:none!important}
-.special-news-media{align-self:start;min-height:0;background:transparent}
+.special-news-media{align-self:center;min-height:0;background:transparent}
 .special-news-media img,.special-news-media .ph{width:100%;height:auto;min-height:0;object-fit:cover;margin:0}
 .special-news-content{padding:clamp(1.1rem,3vw,2rem)}
 .special-news-content h3{margin:.7rem 0 .6rem;font:700 clamp(1.55rem,3vw,2.35rem)/1.15 'Playfair Display',Georgia,serif;color:var(--navy2)}
