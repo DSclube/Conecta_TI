@@ -22,7 +22,7 @@ const checarPermissao = () => sb.rpc('is_admin')
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
 function campo([nome, rotulo, tipo = 'text']) {
-  if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><div class="image-preview" aria-live="polite"></div></div>`
+  if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><label class="image-caption-field">Legenda da imagem (opcional)<input data-f="legenda" type="text" placeholder="Ex.: estudantes durante a atividade"></label><div class="image-preview" aria-live="polite"></div></div>`
   if (tipo === 'area') return `<label class="rich-field">${rotulo}<span class="rich-toolbar" aria-label="Formatação do texto"><button type="button" data-format="bold" title="Negrito"><strong>B</strong></button><button type="button" data-format="italic" title="Itálico"><em>I</em></button><button type="button" data-format="link" title="Inserir link">↗ Link</button></span><textarea data-f="${nome}" rows="3" placeholder="Use os botões de formatação ou cole um link https://..."></textarea></label>`
   return `<label>${rotulo}<input data-f="${nome}" type="${tipo}"></label>`
 }
@@ -93,16 +93,17 @@ async function uploadImage(container) {
   const { error } = await sb.storage.from('connecta-ti-images').upload(path, file, { contentType: file.type, upsert: false })
   if (error) throw new Error(`Falha ao enviar ${file.name}: ${error.message}`)
   article.imagem = sb.storage.from('connecta-ti-images').getPublicUrl(path).data.publicUrl
-  const fileInput = container.querySelector('[data-image-file]')
-  if (fileInput) fileInput.value = ''
   return article
 }
 
 async function articleData(container) {
+  const fileInput = container.querySelector('[data-image-file]')
+  const hasFile = Boolean(fileInput?.files?.[0])
   const data = await uploadImage(container)
-  if (container.querySelector('[data-image-file]')?.files?.[0]) {
+  if (hasFile) {
     const imageInput = container.querySelector('[data-f="imagem"]')
     if (imageInput) imageInput.value = data.imagem
+    fileInput.value = ''
   }
   return data
 }

@@ -46,4 +46,8 @@ export function toast(t) {
 
 // Mostra a imagem ou, se não houver, um espaço reservado para ela
 const ICONE = '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M4 42 24 18l12 14 8-9 16 19z" fill="currentColor"/><circle cx="46" cy="12" r="6" fill="currentColor"/></svg>'
-export const foto = (u, cls = '') => img(u, cls) || `<div class="ph ${cls}" role="img" aria-label="Espaço para imagem">${ICONE}</div>`
+export const foto = (u, cls = '', caption = '') => {
+  const image = img(u, cls)
+  if (!image) return `<div class="ph ${cls}" role="img" aria-label="Espaço para imagem">${ICONE}</div>`
+  return caption ? `<figure class="photo-with-caption">${image}<figcaption>${richText(caption)}</figcaption></figure>` : image
+}

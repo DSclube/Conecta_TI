@@ -11,7 +11,7 @@
 
 A chave publicável pode ser usada no navegador porque o acesso aos dados é controlado pelas políticas RLS. Nunca use uma chave `secret` ou `service_role` no site. O Supabase Auth gerencia o hash da senha; ela não fica no SQL nem no JavaScript.
 
-O administrador pode selecionar uma edição publicada para editar, ou criar uma nova. Cada notícia aceita uma URL de imagem ou um arquivo enviado pelo painel (JPEG, PNG, WebP ou GIF, até 5 MB) e um link externo opcional. As imagens ficam no bucket público `connecta-ti-images`; apenas o administrador autenticado pode enviar, alterar ou remover arquivos. O jornal organiza várias notícias em cards responsivos.
+O administrador pode selecionar uma edição publicada para editar, ou criar uma nova. Cada notícia aceita uma URL de imagem ou um arquivo enviado pelo painel (JPEG, PNG, WebP ou GIF, até 5 MB), uma legenda opcional e um link externo opcional. As imagens ficam no bucket público `connecta-ti-images`; apenas o administrador autenticado pode enviar, alterar ou remover arquivos. Textos aceitam links e formatação em negrito/itálico. O jornal organiza várias notícias em cards responsivos. O ícone do ClubeDS é usado como favicon e ícone de tela inicial.
 
 ## Rodar localmente
 

@@ -33,16 +33,16 @@ export function renderEdition(e, metrics = {}, liked = []) {
   $('ticker').innerHTML = heads.length ? `<div class="run">${strip}<span class="dup" aria-hidden="true">${strip}</span></div>` : ''
 
   // Bloco principal: o número de colunas depende do que foi preenchido
-  const left = sec.length === 1 ? `<div class="col">${sec.map((s) => `<article class="mini"><h3>${esc(s.titulo)}</h3>${foto(s.imagem)}${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div>` : ''
-  const center = p ? `<article class="main"><span class="rot">Destaque</span>${foto(p.imagem, 'big')}<h2>${esc(p.titulo)}</h2>${p.resumo ? `<p class="lead">${esc(p.resumo)}</p>` : ''}${paras(p.texto)}${linkMais(e, p)}${articleStats(e, p, metrics, liked)}</article>` : ''
+  const left = sec.length === 1 ? `<div class="col">${sec.map((s) => `<article class="mini"><h3>${esc(s.titulo)}</h3>${foto(s.imagem, '', s.legenda)}${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div>` : ''
+  const center = p ? `<article class="main"><span class="rot">Destaque</span>${foto(p.imagem, 'big', p.legenda)}<h2>${esc(p.titulo)}</h2>${p.resumo ? `<p class="lead">${esc(p.resumo)}</p>` : ''}${paras(p.texto)}${linkMais(e, p)}${articleStats(e, p, metrics, liked)}</article>` : ''
   const right = ev.length ? `<aside class="col"><div class="evt"><h3>Próximos eventos</h3><ul>${ev.map((v) => { const [d, m] = dm(v.data); return `<li><time><b>${d}</b>${m}</time><div><strong>${esc(v.titulo)}</strong><small>${richText(v.local || '')}</small></div></li>` }).join('')}</ul></div></aside>` : ''
   const cols = [[left, '.85fr'], [center, '1.8fr'], [right, '.9fr']].filter((x) => x[0])
   const top = cols.length ? `<section id="destaque" class="top3" style="--cols:${cols.map((x) => x[1]).join(' ')}">${cols.map((x) => x[0]).join('')}</section>` : ''
 
-  const otherNews = sec.length > 1 ? `<section id="noticias" class="sec"><h2 class="sh">Outras notícias</h2><div class="cards">${sec.map((s) => `<article class="card">${foto(s.imagem)}<h3>${esc(s.titulo)}</h3>${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div></section>` : ''
-  const tech = te.length ? `<section id="tecnologia" class="sec"><h2 class="sh">Tecnologia</h2><div class="cards">${te.map((t) => `<article class="card">${foto(t.imagem)}<h3>${esc(t.titulo)}</h3>${paras(t.texto)}${linkMais(e, t)}${articleStats(e, t, metrics, liked)}</article>`).join('')}</div></section>` : ''
+  const otherNews = sec.length > 1 ? `<section id="noticias" class="sec"><h2 class="sh">Outras notícias</h2><div class="cards">${sec.map((s) => `<article class="card">${foto(s.imagem, '', s.legenda)}<h3>${esc(s.titulo)}</h3>${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div></section>` : ''
+  const tech = te.length ? `<section id="tecnologia" class="sec"><h2 class="sh">Tecnologia</h2><div class="cards">${te.map((t) => `<article class="card">${foto(t.imagem, '', t.legenda)}<h3>${esc(t.titulo)}</h3>${paras(t.texto)}${linkMais(e, t)}${articleStats(e, t, metrics, liked)}</article>`).join('')}</div></section>` : ''
   const dates = da.length ? `<section id="datas" class="sec datas"><h2 class="sh">Datas importantes no mundo de tecnologia</h2><div class="cal">${da.map((d, i) => { const [x, m] = dm(d.data); const href = /^https?:\/\//i.test(d.link || '') ? d.link : `?edicao=${encodeURIComponent(e.id)}&data=${i}`; return `<a class="dt c${i % 5}" href="${esc(href)}" target="_blank" rel="noopener noreferrer"><time><b>${x}</b>${m}</time><span class="dt-title">${esc(d.titulo)}</span><span class="dt-more">Ler mais <b aria-hidden="true">↗</b></span></a>` }).join('')}</div></section>` : ''
-  const extras = ex.map((x) => `<section id="${slug(x.secao || x.titulo)}" class="sec"><h2 class="sh">${esc(x.secao || x.titulo)}</h2><article class="extra comimg">${foto(x.imagem)}<div><h3>${esc(x.titulo)}</h3>${paras(x.texto)}${linkMais(e, x)}${articleStats(e, x, metrics, liked)}</div></article></section>`).join('')
+  const extras = ex.map((x) => `<section id="${slug(x.secao || x.titulo)}" class="sec"><h2 class="sh">${esc(x.secao || x.titulo)}</h2><article class="extra comimg">${foto(x.imagem, '', x.legenda)}<div><h3>${esc(x.titulo)}</h3>${paras(x.texto)}${linkMais(e, x)}${articleStats(e, x, metrics, liked)}</div></article></section>`).join('')
 
   $('out').innerHTML = (top + otherNews + tech + dates + extras) || '<p class="vazio">Esta edição ainda não tem conteúdo.</p>'
 
@@ -59,7 +59,7 @@ export function renderArticle(e, article, metrics = {}, liked = []) {
   $('anchors').innerHTML = ''
   document.querySelector('.acts').hidden = true
   const sourceLink = /^https?:\/\//i.test(article.link || '') ? `<a class="ler-mais" href="${esc(article.link)}" target="_blank" rel="noopener noreferrer">Acessar matéria original <span aria-hidden="true">↗</span></a>` : ''
-  $('out').innerHTML = `<article class="article-page"><span class="rot">Reportagem</span><h1>${esc(article.titulo)}</h1>${article.resumo ? `<p class="lead">${esc(article.resumo)}</p>` : ''}${foto(article.imagem, 'article-image')}${paras(article.texto_completo || article.texto)}${sourceLink}${articleStats(e, article, metrics, liked)}<p class="article-source">Connecta TI · Jornal dos cursos de TI do CIMATEC · ${esc(date)}</p></article>`
+  $('out').innerHTML = `<article class="article-page"><span class="rot">Reportagem</span><h1>${esc(article.titulo)}</h1>${article.resumo ? `<p class="lead">${esc(article.resumo)}</p>` : ''}${foto(article.imagem, 'article-image', article.legenda)}${paras(article.texto_completo || article.texto)}${sourceLink}${articleStats(e, article, metrics, liked)}<p class="article-source">Connecta TI · Jornal dos cursos de TI do CIMATEC · ${esc(date)}</p></article>`
   document.title = `${article.titulo} — Connecta TI`
 }
 

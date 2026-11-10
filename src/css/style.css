@@ -378,3 +378,11 @@ dialog:has(.admin-panel) > #bFechar,dialog:has(.admin-panel) > #msg{display:none
 .main p a,.mini p a,.card p a,.extra p a,.article-page p a,.evt small a{color:#24568a;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
 .evt small a{color:#fff}
 .main p a:hover,.mini p a:hover,.card p a:hover,.extra p a:hover,.article-page p a:hover,.evt small a:hover{opacity:.78}
+.photo-with-caption{min-width:0;margin:.5rem 0 .8rem}
+.photo-with-caption img{margin:0}
+.photo-with-caption figcaption{margin-top:.35rem;color:#69748a;font-size:.75rem;line-height:1.45;font-style:italic;text-align:left}
+.photo-with-caption figcaption a{color:#315b91;text-decoration:underline;text-underline-offset:2px}
+.extra .photo-with-caption{height:100%;max-height:300px}
+.extra .photo-with-caption img{height:calc(100% - 1.5rem);max-height:270px}
+.admin-image .image-caption-field{grid-column:1/-1}
+@media(max-width:640px){.admin-image .image-caption-field{grid-column:1}.extra .photo-with-caption{height:auto}.extra .photo-with-caption img{height:auto;max-height:240px}}
