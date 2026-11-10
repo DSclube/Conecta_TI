@@ -1,47 +1,94 @@
 import { sb } from './supabase.js'
 import { $, toast } from './util.js'
 
-const TXT = (n, l) => [n, l]
-const AREA = (n, l) => [n, l, 'area']
-const URL_ = (n) => [n, 'URL da imagem (opcional)', 'url']
-const LINK_ = ['link', 'Link externo da notícia (opcional)', 'url']
 const EMAIL_ADMIN = 'ds.clube00@gmail.com'
-
-const COMPLETO = AREA('texto_completo', 'Texto completo (opcional; exibido ao abrir “Ler mais”)')
-const PRINCIPAL = [TXT('titulo', 'Título'), AREA('resumo', 'Resumo (uma ou duas frases)'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]
+const PRINCIPAL = [
+  ['titulo', 'Título da notícia'], ['resumo', 'Resumo curto'], ['texto', 'Chamada exibida na capa', 'area'],
+  ['texto_completo', 'Texto completo (opcional)', 'area'], ['imagem', 'URL da imagem (opcional)', 'image'],
+  ['link', 'Link externo da notícia (opcional)', 'url']
+]
 const LISTAS = {
-  secundarias: ['Notícias secundárias', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]],
-  eventos: ['Eventos', [TXT('titulo', 'Nome do evento'), ['data', 'Data', 'date'], TXT('local', 'Local')]],
-  tecnologia: ['Notícias de tecnologia', [TXT('titulo', 'Título'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]],
-  datas: ['Datas importantes', [['data', 'Data', 'date'], TXT('titulo', 'O que acontece'), LINK_]],
-  extras: ['Seções extras (uma seção própria para uma notícia)', [TXT('secao', 'Nome da seção'), TXT('titulo', 'Título da notícia'), AREA('texto', 'Chamada (texto curto exibido na capa)'), COMPLETO, URL_('imagem'), LINK_]]
+  secundarias: ['Notícias secundárias', [['titulo', 'Título'], ['texto', 'Chamada', 'area'], ['texto_completo', 'Texto completo', 'area'], ['imagem', 'Imagem', 'image'], ['link', 'Link externo', 'url']]],
+  eventos: ['Próximos eventos', [['titulo', 'Nome do evento'], ['data', 'Data', 'date'], ['local', 'Local ou link']]],
+  tecnologia: ['Notícias de tecnologia', [['titulo', 'Título'], ['texto', 'Chamada', 'area'], ['texto_completo', 'Texto completo', 'area'], ['imagem', 'Imagem', 'image'], ['link', 'Link externo', 'url']]],
+  datas: ['Datas importantes no mundo da tecnologia', [['data', 'Data', 'date'], ['titulo', 'O que acontece'], ['link', 'Link externo', 'url']], true],
+  extras: ['Outras seções', [['secao', 'Nome da seção'], ['titulo', 'Título'], ['texto', 'Chamada', 'area'], ['texto_completo', 'Texto completo', 'area'], ['imagem', 'Imagem', 'image'], ['link', 'Link externo', 'url']]]
 }
 
-const campo = ([n, l, t = 'text']) =>
-  `<label>${l}${t === 'area' ? `<textarea data-f="${n}" rows="3"></textarea>` : `<input data-f="${n}" type="${t}">`}</label>`
-const ler = (el) => Object.fromEntries([...el.querySelectorAll('[data-f]')].map((i) => [i.dataset.f, i.value.trim()]))
 let aoPublicar = () => {}
-const msg = (t) => ($('msg').textContent = t)
+let edicaoAtual = null
+const msg = (texto) => { $('msg').textContent = texto }
 const checarPermissao = () => sb.rpc('is_admin')
+const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+
+function campo([nome, rotulo, tipo = 'text']) {
+  if (tipo === 'image') return `<div class="admin-image"><label>${rotulo}<input data-f="imagem" type="url" placeholder="Cole aqui o link da imagem"></label><label class="file-pick">Anexar arquivo de imagem<input data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><div class="image-preview" aria-live="polite"></div></div>`
+  return `<label>${rotulo}${tipo === 'area' ? `<textarea data-f="${nome}" rows="3"></textarea>` : `<input data-f="${nome}" type="${tipo}">`}</label>`
+}
+
+function preencher(container, dados = {}) {
+  container.querySelectorAll('[data-f]').forEach((el) => { el.value = dados[el.dataset.f] || '' })
+  const preview = container.querySelector('.image-preview')
+  const image = container.querySelector('[data-f="imagem"]')
+  if (preview && image?.value) preview.innerHTML = `<img src="${esc(image.value)}" alt="Prévia da imagem">`
+}
+
+function ler(container) {
+  return Object.fromEntries([...container.querySelectorAll('[data-f]')].map((el) => [el.dataset.f, el.value.trim()]))
+}
+
+function articleCard(fields, data = {}, removable = false) {
+  const el = document.createElement('div')
+  el.className = 'admin-item'
+  el.innerHTML = `<div class="admin-item-fields">${fields.map(campo).join('')}</div>${removable ? '<button type="button" class="btn cinza remove-item">Remover matéria</button>' : ''}`
+  preencher(el, data)
+  el.querySelector('[data-image-file]')?.addEventListener('change', (ev) => {
+    const file = ev.target.files?.[0]
+    const preview = el.querySelector('.image-preview')
+    if (!file) return
+    if (!file.type.startsWith('image/')) { msg('Selecione um arquivo de imagem válido.'); ev.target.value = ''; return }
+    if (file.size > 5 * 1024 * 1024) { msg('A imagem deve ter no máximo 5 MB.'); ev.target.value = ''; return }
+    preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Prévia da imagem selecionada"><span>${esc(file.name)}</span>`
+    msg('')
+  })
+  el.querySelector('.remove-item')?.addEventListener('click', () => el.remove())
+  return el
+}
+
+async function uploadImage(container) {
+  const article = ler(container)
+  const file = container.querySelector('[data-image-file]')?.files?.[0]
+  if (!file) return article
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+  const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`
+  const { error } = await sb.storage.from('connecta-ti-images').upload(path, file, { contentType: file.type, upsert: false })
+  if (error) throw new Error(`Falha ao enviar ${file.name}: ${error.message}`)
+  article.imagem = sb.storage.from('connecta-ti-images').getPublicUrl(path).data.publicUrl
+  const fileInput = container.querySelector('[data-image-file]')
+  if (fileInput) fileInput.value = ''
+  return article
+}
+
+async function articleData(container) {
+  const data = await uploadImage(container)
+  if (container.querySelector('[data-image-file]')?.files?.[0]) {
+    const imageInput = container.querySelector('[data-f="imagem"]')
+    if (imageInput) imageInput.value = data.imagem
+  }
+  return data
+}
 
 function login(body) {
-  body.innerHTML = `<h3>Entrar como administrador</h3>
-    <label>E-mail<input id="em" type="email" autocomplete="username"></label>
-    <label>Senha<input id="pw" type="password" autocomplete="current-password"></label>
-    <p><button class="btn azul" id="go">Entrar</button></p>`
+  body.innerHTML = `<section class="admin-login"><div class="admin-kicker">ÁREA RESTRITA</div><h2>Acessar o painel</h2><p>Entre com a conta administradora do Connecta TI.</p><label>E-mail<input id="em" type="email" autocomplete="username"></label><label>Senha<input id="pw" type="password" autocomplete="current-password"></label><button class="btn azul" id="go">Entrar</button></section>`
   $('go').onclick = async () => {
     const email = $('em').value.trim().toLowerCase()
     if (email !== EMAIL_ADMIN) return msg('Este painel está restrito à conta administradora autorizada.')
     const { error } = await sb.auth.signInWithPassword({ email, password: $('pw').value })
     if (error) return msg('E-mail ou senha incorretos.')
     const { data: autorizado, error: erroPermissao } = await checarPermissao()
-    if (erroPermissao) {
+    if (erroPermissao || autorizado !== true) {
       await sb.auth.signOut()
-      return msg('Não foi possível validar o acesso. Confira se supabase.sql já foi executado.')
-    }
-    if (autorizado !== true) {
-      await sb.auth.signOut()
-      return msg('Esta conta não possui autorização de administrador no banco de dados.')
+      return msg(erroPermissao ? 'Não foi possível validar o acesso. Confira se o SQL do projeto já foi executado.' : 'Esta conta não possui autorização de administrador no banco de dados.')
     }
     msg('')
     painel(body)
@@ -49,43 +96,104 @@ function login(body) {
 }
 
 function painel(body) {
-  body.innerHTML = `<h3>Publicar nova edição</h3>
-    <div class="duo"><label>Número<input id="pn" type="number" min="1"></label>
-    <label>Ano do jornal<input id="pa" type="number" min="1" value="1"></label>
-    <label>Data<input id="pd" type="date"></label></div>
-    <fieldset id="fp"><legend>Notícia principal</legend>${PRINCIPAL.map(campo).join('')}</fieldset>
-    ${Object.entries(LISTAS).map(([k, [t]]) => `<fieldset data-l="${k}"><legend>${t}</legend><div class="rows"></div><button type="button" class="btn cinza add">+ Adicionar</button></fieldset>`).join('')}
-    <p><button class="btn azul" id="pub">Publicar edição</button> <button class="btn cinza" id="sair">Sair</button></p>`
+  body.innerHTML = `<div class="admin-panel"><header class="admin-head"><div><div class="admin-kicker">CONNECTA TI · REDAÇÃO</div><h2>Gerenciar notícias</h2><p>Edite uma edição publicada ou prepare uma nova edição.</p></div><button type="button" class="admin-close" id="sair" aria-label="Sair do painel">×</button></header>
+    <div class="admin-toolbar"><label>Editar edição publicada<select id="edition-picker"><option value="">Carregando edições…</option></select></label><button type="button" class="btn cinza" id="nova">＋ Nova edição</button></div>
+    <div class="admin-status" id="edit-status">Nova edição</div>
+    <div class="admin-meta"><label>Número da edição<input id="pn" type="number" min="1"></label><label>Ano<input id="pa" type="number" min="1" value="1"></label><label>Data de publicação<input id="pd" type="date"></label></div>
+    <section class="admin-section principal-editor"><div class="section-heading"><span>01</span><div><h3>Matéria principal</h3><p>O destaque da capa do jornal.</p></div></div><div id="fp" class="admin-item">${PRINCIPAL.map(campo).join('')}</div></section>
+    ${Object.entries(LISTAS).map(([key, [title, fields, single]]) => `<section class="admin-section" data-l="${key}"><div class="section-heading"><span>${String(Object.keys(LISTAS).indexOf(key) + 2).padStart(2, '0')}</span><div><h3>${title}</h3><p>${single ? 'Cadastre datas e links relacionados.' : 'Adicione quantas matérias precisar.'}</p></div></div><div class="rows"></div><button type="button" class="btn cinza add">＋ Adicionar ${single ? 'data' : 'matéria'}</button></section>`).join('')}
+    <div class="admin-footer-actions"><button class="btn cinza" id="cancelar">Fechar</button><button class="btn azul" id="pub">Salvar edição</button></div></div>`
   $('pd').valueAsDate = new Date()
-
-  body.querySelectorAll('fieldset[data-l]').forEach((fs) => {
-    const campos = LISTAS[fs.dataset.l][1]
-    const add = () => {
-      const d = document.createElement('div')
-      d.className = 'row'
-      d.innerHTML = campos.map(campo).join('') + '<button type="button" class="btn cinza">Remover</button>'
-      d.querySelector('button').onclick = () => d.remove()
-      fs.querySelector('.rows').append(d)
-    }
-    fs.querySelector('.add').onclick = add
-  })
-
   $('sair').onclick = async () => { await sb.auth.signOut(); $('dlg').close() }
-  $('pub').onclick = async () => {
-    const conteudo = { principal: ler($('fp')) }
-    body.querySelectorAll('fieldset[data-l]').forEach((fs) => {
-      conteudo[fs.dataset.l] = [...fs.querySelectorAll('.row')].map(ler).filter((o) => Object.values(o).some(Boolean))
-    })
-    if (!$('pn').value || !conteudo.principal.titulo) return msg('Informe o número da edição e o título da notícia principal.')
-    const noticias = [conteudo.principal, ...(conteudo.secundarias || []), ...(conteudo.tecnologia || []), ...(conteudo.extras || [])]
-    const urls = [...noticias.flatMap((n) => [n.link, n.imagem]), ...(conteudo.datas || []).map((d) => d.link)]
-    const linkInvalido = urls.some((url) => url && !/^https?:\/\//i.test(url))
-    if (linkInvalido) return msg('Os links da notícia e da imagem devem começar com http:// ou https://.')
-    const { error } = await sb.from('edicoes').insert({ numero: +$('pn').value, ano: +$('pa').value, publicada_em: $('pd').value, conteudo })
-    if (error) return msg('Não foi possível publicar (a conta é de administrador?): ' + error.message)
-    $('dlg').close()
-    toast('Edição publicada!')
-    aoPublicar()
+  $('cancelar').onclick = () => $('dlg').close()
+  $('nova').onclick = () => openEdition(null)
+
+  body.querySelectorAll('fieldset[data-l],section[data-l]').forEach((section) => {
+    const [title, fields, single] = LISTAS[section.dataset.l]
+    section.querySelector('.add').onclick = () => section.querySelector('.rows').append(articleCard(fields, {}, true))
+  })
+  body.querySelectorAll('[data-f="imagem"]').forEach((input) => input.addEventListener('input', () => {
+    const preview = input.closest('.admin-image')?.querySelector('.image-preview')
+    preview.innerHTML = input.value ? `<img src="${esc(input.value)}" alt="Prévia da imagem" onerror="this.parentElement.textContent='Não foi possível carregar esta imagem.'">` : ''
+  }))
+  $('edition-picker').onchange = async (ev) => {
+    if (!ev.target.value) return
+    const { data, error } = await sb.from('edicoes').select('*').eq('id', ev.target.value).single()
+    if (error) return msg('Não foi possível abrir a edição: ' + error.message)
+    openEdition(data)
+  }
+  $('pub').onclick = saveEdition
+  loadEditions()
+}
+
+async function loadEditions() {
+  const picker = $('edition-picker')
+  const { data, error } = await sb.from('edicoes').select('id,numero,ano,publicada_em').order('publicada_em', { ascending: false })
+  if (error) { picker.innerHTML = '<option value="">Erro ao carregar edições</option>'; return msg('Não foi possível listar as edições: ' + error.message) }
+  picker.innerHTML = `<option value="">Selecione uma edição para editar</option>${(data || []).map((e) => `<option value="${esc(e.id)}">Edição ${String(e.numero).padStart(2, '0')} · ${esc(e.publicada_em)}</option>`).join('')}`
+  if (data?.length) {
+    const { data: full } = await sb.from('edicoes').select('*').eq('id', data[0].id).single()
+    openEdition(full)
+  } else openEdition(null)
+}
+
+function openEdition(edition) {
+  edicaoAtual = edition
+  const content = edition?.conteudo && !Array.isArray(edition.conteudo) ? edition.conteudo : {}
+  $('edition-picker').value = edition?.id || ''
+  $('edit-status').textContent = edition ? `Editando edição ${String(edition.numero).padStart(2, '0')}` : 'Nova edição'
+  $('pub').textContent = edition ? 'Salvar alterações' : 'Publicar edição'
+  $('pn').value = edition?.numero ?? ''
+  $('pa').value = edition?.ano ?? 1
+  $('pd').value = edition?.publicada_em || new Date().toISOString().slice(0, 10)
+  preencher($('fp'), content.principal || {})
+  document.querySelectorAll('#dlgBody section[data-l]').forEach((section) => {
+    const key = section.dataset.l
+    const rows = section.querySelector('.rows')
+    rows.replaceChildren()
+    const records = Array.isArray(content[key]) ? content[key] : []
+    records.forEach((item) => rows.append(articleCard(LISTAS[key][1], item, true)))
+  })
+  msg('')
+}
+
+async function saveEdition() {
+  const button = $('pub')
+  button.disabled = true
+  button.textContent = 'Salvando…'
+  try {
+    const content = { principal: await articleData($('fp')) }
+    const sections = [...document.querySelectorAll('#dlgBody section[data-l]')]
+    for (const section of sections) {
+      const key = section.dataset.l
+      const rows = [...section.querySelectorAll('.admin-item')]
+      const records = []
+      for (const row of rows) {
+        const data = await articleData(row)
+        if (Object.values(data).some(Boolean)) records.push(data)
+      }
+      content[key] = records
+    }
+    if (!$('pn').value || !content.principal.titulo) return msg('Informe o número da edição e o título da matéria principal.')
+    const articles = [content.principal, ...content.secundarias, ...content.tecnologia, ...content.extras]
+    const urls = [...articles.flatMap((item) => [item.link, item.imagem]), ...content.datas.map((item) => item.link)]
+    if (urls.some((url) => url && !/^https?:\/\//i.test(url))) return msg('Os links da notícia e da imagem devem começar com http:// ou https://.')
+    const record = { numero: Number($('pn').value), ano: Number($('pa').value) || 1, publicada_em: $('pd').value, conteudo: content }
+    let result
+    if (edicaoAtual?.id) result = await sb.from('edicoes').update(record).eq('id', edicaoAtual.id).select().single()
+    else result = await sb.from('edicoes').insert(record).select().single()
+    if (result.error) return msg('Não foi possível salvar. Confira a autorização de administrador e os dados: ' + result.error.message)
+    edicaoAtual = result.data
+    await aoPublicar()
+    await loadEditions()
+    $('edition-picker').value = result.data.id
+    openEdition(result.data)
+    toast('Edição salva com sucesso!')
+  } catch (error) {
+    msg(error.message || 'Não foi possível salvar a edição.')
+  } finally {
+    button.disabled = false
+    button.textContent = edicaoAtual ? 'Salvar alterações' : 'Publicar edição'
   }
 }
 
@@ -97,20 +205,15 @@ export function initAdmin({ onPublished }) {
     if (!ev.target.closest('#bAdm')) return
     msg('')
     if (!sb) {
-      body.innerHTML = '<h3>Supabase não configurado</h3><p>Copie <code>.env.example</code> para <code>.env</code> e preencha as duas variáveis para habilitar login e publicação.</p>'
+      body.innerHTML = '<h3>Supabase não configurado</h3><p>Configure as variáveis do Supabase para ativar o painel.</p>'
     } else {
       const { data } = await sb.auth.getSession()
       if (!data.session) login(body)
       else {
-        const { data: autorizado, error: erroPermissao } = await checarPermissao()
-        if (erroPermissao) {
-          await sb.auth.signOut()
-          body.innerHTML = '<h3>Configuração incompleta</h3><p>Não foi possível validar o acesso. Confira se supabase.sql já foi executado.</p>'
-        } else if (autorizado === true) painel(body)
-        else {
-          await sb.auth.signOut()
-          body.innerHTML = '<h3>Acesso restrito</h3><p>Esta conta não está autorizada para administrar o jornal.</p>'
-        }
+        const { data: autorizado, error } = await checarPermissao()
+        if (error) { await sb.auth.signOut(); body.innerHTML = '<h3>Configuração incompleta</h3><p>Não foi possível validar o acesso. Confira o SQL do projeto.</p>' }
+        else if (autorizado === true) painel(body)
+        else { await sb.auth.signOut(); body.innerHTML = '<h3>Acesso restrito</h3><p>Esta conta não está autorizada para administrar o jornal.</p>' }
       }
     }
     $('dlg').showModal()
