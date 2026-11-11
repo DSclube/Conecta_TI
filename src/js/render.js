@@ -36,7 +36,7 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
     'Redes de Computadores',
     'Informática para Internet',
     'Ford Enter',
-    'Pós Técnico em Desenv. em IA',
+    'Pós Técnico em Desenv. de Apli. para IA',
     'Pós Técnico em Cibersegurança'
   ]
   const strip = courses.map((course) => `<span>${esc(course)}</span>`).join('')
