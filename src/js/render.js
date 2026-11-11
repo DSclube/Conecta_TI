@@ -30,10 +30,17 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
       <div class="sub"><u></u><u></u><hr><span>JORNAL DOS CURSOS DE TI DO CIMATEC</span></div></div>
     <div class="num"><small>${esc(longDate(e.publicada_em))}</small><small>Ano ${esc(e.ano || 1)} · Publicação quinzenal</small><strong>Nº ${String(e.numero).padStart(2, '0')}</strong></div>`
 
-  // Faixa de manchetes
-  const heads = [p?.titulo, ...sec.map((s) => s.titulo), ...te.map((t) => t.titulo), ...da.map((d) => `${dm(d.data).join(' ')} · ${d.titulo}`)].filter(Boolean)
-  const strip = heads.map((h) => `<span>${esc(h)}</span>`).join('')
-  $('ticker').innerHTML = heads.length ? `<div class="run">${strip}<span class="dup" aria-hidden="true">${strip}</span></div>` : ''
+  // Faixa giratória fixa com os cursos, sem títulos de notícias.
+  const courses = [
+    'Desenvolvimento de sistemas',
+    'Redes de Computadores',
+    'Informática para Internet',
+    'Ford Enter',
+    'Pós Técnico em Desenv. em IA',
+    'Pós Técnico em Cibersegurança'
+  ]
+  const strip = courses.map((course) => `<span>${esc(course)}</span>`).join('')
+  $('ticker').innerHTML = `<div class="run">${strip}<span class="dup" aria-hidden="true">${strip}</span></div>`
 
   // Bloco principal: o número de colunas depende do que foi preenchido
   const left = sec.length === 1 ? `<div class="col">${sec.map((s) => `<article class="mini"><h3>${esc(s.titulo)}</h3>${foto(s.imagem, '', s.legenda, s.descricao_imagem || s.legenda || s.titulo)}${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div>` : ''
