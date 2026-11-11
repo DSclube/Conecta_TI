@@ -519,20 +519,22 @@ body.high-contrast .ph{background:#e5e5e5;color:#333}
 :focus-visible{scroll-margin-top:1rem;scroll-margin-bottom:140px}
 @media(max-width:640px){body{padding-bottom:calc(9.4rem + env(safe-area-inset-bottom,0px))}.rod{min-height:118px}.cookie-banner{bottom:calc(126px + env(safe-area-inset-bottom,0px))}}
 
-/* No celular, preserva a proporção original das imagens em vez de recortá-las. */
+/* No celular, usa um quadro compacto sem deformar nem recortar a imagem. */
 @media(max-width:640px){
   .mini img,.card img,.main .big,.extra img,.article-image{
+    width:100%;
     height:auto;
     max-height:none;
     min-height:0;
-    aspect-ratio:auto;
+    aspect-ratio:4/3;
     object-fit:contain;
     object-position:center;
+    background:#f1f2f6;
   }
   .extra .photo-with-caption{height:auto;max-height:none}
-  .extra .photo-with-caption img{height:auto;max-height:none;min-height:0;aspect-ratio:auto}
-  .special-news-media{min-height:0;max-height:none}
+  .extra .photo-with-caption img{height:auto;max-height:none;min-height:0;aspect-ratio:4/3}
+  .special-news-media{min-height:0;max-height:none;aspect-ratio:4/3}
   .special-news-media .photo-with-caption{position:relative;inset:auto;height:auto;max-height:none}
-  .special-news-media img{height:auto;min-height:0;max-height:none;aspect-ratio:auto;object-fit:contain;object-position:center}
+  .special-news-media img{height:auto;min-height:0;max-height:none;aspect-ratio:4/3;object-fit:contain;object-position:center;background:#f1f2f6}
 }
 
