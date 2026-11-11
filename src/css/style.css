@@ -518,3 +518,15 @@ body.high-contrast .ph{background:#e5e5e5;color:#333}
 .cookie-buttons #cookie-reject:hover,.cookie-buttons #cookie-accept:hover{background:#31536f}
 :focus-visible{scroll-margin-top:1rem;scroll-margin-bottom:140px}
 @media(max-width:640px){body{padding-bottom:calc(9.4rem + env(safe-area-inset-bottom,0px))}.rod{min-height:118px}.cookie-banner{bottom:calc(126px + env(safe-area-inset-bottom,0px))}}
+
+/* Mantém a imagem editorial inteira, sem cortes em miniaturas ou telas pequenas. */
+.mini img,.card img,.main .big,.extra img,.article-image{
+  height:auto;
+  max-height:none;
+  aspect-ratio:auto;
+  object-fit:contain;
+  object-position:center;
+  background:#fff;
+}
+.extra .photo-with-caption{height:auto;max-height:none}
+.extra .photo-with-caption img{height:auto;max-height:none;aspect-ratio:auto}
