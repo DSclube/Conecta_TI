@@ -32,7 +32,7 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
 
   // Faixa giratória fixa com os cursos, sem títulos de notícias.
   const courses = [
-    'Desenvolvimento de sistemas',
+    'Desenvolvimento de Sistemas',
     'Redes de Computadores',
     'Informática para Internet',
     'Ford Enter',
