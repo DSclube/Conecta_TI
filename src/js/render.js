@@ -24,7 +24,7 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
 
   // Cabeçalho
   $('masthead').innerHTML = `
-    <button class="admin-top" id="bAdm">Administrador</button>
+    <a class="admin-top" id="bAdm" href="/admin.html" target="_blank" rel="noopener" aria-label="Login do administrador (abre em uma nova aba)">Login</a>
     <div class="selo"><span class="l a">Nossa</span><span class="l b">história</span><span class="l c">TRANSFORMA</span><span class="l d">muitas</span><span class="l e">histórias</span><i class="dots"><u></u><u></u></i></div>
     <div class="tit"><h1><i>NEWSLETTER</i>CONNECTA TI</h1>
       <div class="sub"><u></u><u></u><hr><span>JORNAL DOS CURSOS DE TI DO CIMATEC</span></div></div>
@@ -77,7 +77,7 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
 
 export function renderArticle(e, article, metrics = {}, liked = []) {
   const date = longDate(e.publicada_em)
-  $('masthead').innerHTML = `<button class="admin-top" id="bAdm">Administrador</button><div class="article-mast"><a href="./#${encodeURIComponent(e.id)}">← Voltar ao jornal</a><span>CONNECTA TI · EDIÇÃO ${String(e.numero).padStart(2, '0')}</span><small>${esc(date)}</small></div>`
+  $('masthead').innerHTML = `<a class="admin-top" id="bAdm" href="/admin.html" target="_blank" rel="noopener" aria-label="Login do administrador (abre em uma nova aba)">Login</a><div class="article-mast"><a href="./#${encodeURIComponent(e.id)}">← Voltar ao jornal</a><span>CONNECTA TI · EDIÇÃO ${String(e.numero).padStart(2, '0')}</span><small>${esc(date)}</small></div>`
   $('ticker').hidden = true
   $('anchors').innerHTML = ''
   document.querySelector('.acts').hidden = true
@@ -89,7 +89,7 @@ export function renderArticle(e, article, metrics = {}, liked = []) {
 export function renderDateDetail(e, date) {
   const [day, month] = dm(date.data)
   const fullDate = new Date(`${date.data}T12:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })
-  $('masthead').innerHTML = `<button class="admin-top" id="bAdm">Administrador</button><div class="article-mast"><a href="./#${encodeURIComponent(e.id)}">← Voltar ao jornal</a><span>CONNECTA TI · EDIÇÃO ${String(e.numero).padStart(2, '0')}</span><small>${esc(fullDate)}</small></div>`
+  $('masthead').innerHTML = `<a class="admin-top" id="bAdm" href="/admin.html" target="_blank" rel="noopener" aria-label="Login do administrador (abre em uma nova aba)">Login</a><div class="article-mast"><a href="./#${encodeURIComponent(e.id)}">← Voltar ao jornal</a><span>CONNECTA TI · EDIÇÃO ${String(e.numero).padStart(2, '0')}</span><small>${esc(fullDate)}</small></div>`
   $('ticker').hidden = true
   $('anchors').innerHTML = ''
   document.querySelector('.acts').hidden = true

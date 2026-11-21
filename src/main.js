@@ -3,7 +3,6 @@ import { sb } from './js/supabase.js'
 import { $, esc, toast } from './js/util.js'
 import { renderEdition, renderArticle, renderDateDetail } from './js/render.js'
 import { DEMO } from './js/demo.js'
-import { initAdmin } from './js/admin.js'
 import { initPrivacyUI, hasAnalyticsConsent } from './js/privacy.js'
 
 let eds = []
@@ -137,9 +136,16 @@ $('anchors').addEventListener('click', (ev) => {
   document.getElementById(a.dataset.s)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 })
 
-initAdmin({ onPublished: load })
 initPrivacyUI({ onConsentChange: (enabled) => {
   liked = enabled ? JSON.parse(localStorage.getItem('cti_article_likes') || '[]') : []
   load()
 } })
 load()
+
+// O rodapé é fixo e compacto: reserva exatamente a altura dele no fim da página
+const rodape = document.querySelector('.rod')
+if (rodape) {
+  const medir = () => document.documentElement.style.setProperty('--rod-h', rodape.offsetHeight + 'px')
+  medir()
+  new ResizeObserver(medir).observe(rodape)
+}

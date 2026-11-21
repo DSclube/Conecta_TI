@@ -538,3 +538,20 @@ body.high-contrast .ph{background:#e5e5e5;color:#333}
   .special-news-media img{height:auto;min-height:0;max-height:none;aspect-ratio:auto;object-fit:fill;background:none}
   .special-news-media .photo-with-caption figcaption{position:static}
 }
+
+/* Botão Login (link para o painel, que abre em nova aba) */
+.admin-top{display:inline-block;text-decoration:none;line-height:1.2}
+
+/* Rodapé compacto: tudo em uma faixa baixa; a altura real é medida em main.js (--rod-h) */
+body{padding-bottom:calc(var(--rod-h,44px) + 1rem)}
+.rod{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:.05rem 1.2rem;min-height:0;padding:.35rem clamp(1rem,2.5vw,2.5rem) calc(.35rem + env(safe-area-inset-bottom,0px));border-top-width:2px;font-size:.66rem;line-height:1.35}
+.rod-credit,.rod-contact{font-size:.66rem;line-height:1.35}
+.legal-links{font-size:.64rem;line-height:1.35}
+.cookie-banner{bottom:calc(var(--rod-h,44px) + 8px)}
+@media(max-width:640px){
+  body{padding-bottom:calc(var(--rod-h,64px) + 1rem)}
+  .rod{flex-direction:column;gap:0;min-height:0;padding:.3rem .75rem calc(.3rem + env(safe-area-inset-bottom,0px));font-size:.6rem}
+  .rod-credit,.rod-contact{font-size:.6rem}
+  .legal-links{gap:0 .35rem;font-size:.58rem}
+  .cookie-banner{bottom:calc(var(--rod-h,64px) + 6px)}
+}

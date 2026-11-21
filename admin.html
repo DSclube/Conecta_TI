@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Painel · Connecta TI</title>
+  <link rel="icon" type="image/png" href="/connecta-ti-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <header class="adm-bar">
+    <a class="adm-brand" href="/" target="_blank" rel="noopener" aria-label="Abrir o jornal em outra aba">
+      <img src="/connecta-ti-icon.png" alt="" width="34" height="34">
+      <span><small>CONNECTA TI · REDAÇÃO</small><strong>Painel do administrador</strong></span>
+    </a>
+    <div class="adm-bar-actions">
+      <a class="btn ghost" href="/" target="_blank" rel="noopener">Ver jornal ↗</a>
+      <button type="button" class="btn cinza" id="sair" hidden>Sair</button>
+    </div>
+  </header>
+  <main id="adminRoot" class="adm-root"><p class="adm-loading">Carregando painel…</p></main>
+  <p id="msg" role="alert"></p>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="/src/admin-page.js"></script>
+</body>
+</html>
