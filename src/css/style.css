@@ -555,3 +555,33 @@ body{padding-bottom:calc(var(--rod-h,44px) + 1rem)}
   .legal-links{gap:0 .35rem;font-size:.58rem}
   .cookie-banner{bottom:calc(var(--rod-h,64px) + 6px)}
 }
+
+/* Carrossel de tecnologia: cards de larguras variadas; o card em destaque se expande */
+.tc-head{display:flex;align-items:flex-end;gap:1rem}
+.tc-head .sh{flex:1;min-width:0}
+.tc-ctrl{display:flex;gap:.4rem;padding-bottom:.45rem}
+.tc-btn{display:grid;place-items:center;width:2.3rem;height:2.3rem;padding:0;border:2px solid var(--navy);border-radius:50%;background:#fff;color:var(--navy);cursor:pointer;transition:background .2s,color .2s}
+.tc-btn svg{width:1rem;height:1rem}
+.tc-btn:hover:not(:disabled){background:var(--navy);color:#fff}
+.tc-btn:disabled{opacity:.35;cursor:not-allowed}
+.tc-track{position:relative;display:flex;align-items:flex-start;gap:1rem;margin-top:.6rem;padding:.5rem .4rem 1rem;overflow-x:auto;scrollbar-width:thin}
+.tc-item{flex:none;width:min(var(--w,300px),78vw);cursor:pointer;transition:width .55s cubic-bezier(.2,.8,.2,1),box-shadow .3s,transform .3s}
+.tc-item:not(.on):hover{transform:translateY(-3px);box-shadow:0 8px 20px #1f2b4520}
+.tc-item.on{width:min(max(calc(var(--w,300px) + 140px),460px),90vw);cursor:default;box-shadow:0 12px 30px #1f2b4526}
+.tc-item:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
+.tc-item img,.tc-item .ph{aspect-ratio:auto;height:150px;transition:height .55s cubic-bezier(.2,.8,.2,1)}
+.tc-item.on img,.tc-item.on .ph{height:240px}
+.tc-item figure{margin:0}
+.tc-item h3{transition:font-size .4s}
+.tc-item.on h3{font-size:1.3rem}
+.tc-more{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .55s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.tc-item.on .tc-more{grid-template-rows:1fr;opacity:1;transition:grid-template-rows .55s cubic-bezier(.2,.8,.2,1),opacity .45s .15s}
+.tc-more>div{min-height:0;overflow:hidden}
+@media(prefers-reduced-motion:reduce){.tc-item,.tc-item img,.tc-item .ph,.tc-item h3,.tc-more,.tc-btn{transition:none!important}}
+@media print{
+  .tc-ctrl{display:none}
+  .tc-track{flex-wrap:wrap;overflow:visible}
+  .tc-item,.tc-item.on{width:calc(50% - .5rem)}
+  .tc-more{grid-template-rows:1fr;opacity:1}
+}
+

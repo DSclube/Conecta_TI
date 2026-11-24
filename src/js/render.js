@@ -1,4 +1,10 @@
 import { $, esc, paras, foto, dm, longDate, richText } from './util.js'
+import { initTechCarousel } from './carousel.js'
+
+// Larguras variadas dos cards do carrossel de tecnologia (o card em destaque se expande a partir da dele)
+const TC_LARGURAS = [260, 340, 300, 380, 280, 320]
+const TC_SETA_ESQ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'
+const TC_SETA_DIR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
 
 const slug = (s) => String(s).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const metricId = (e, article) => `${e.id}:${slug(article.titulo)}`
@@ -50,7 +56,7 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
   const top = cols.length ? `<section id="destaque" class="top3" style="--cols:${cols.map((x) => x[1]).join(' ')}">${cols.map((x) => x[0]).join('')}</section>` : ''
 
   const otherNews = sec.length > 1 ? `<section id="noticias" class="sec"><h2 class="sh">Outras notícias</h2><div class="cards">${sec.map((s) => `<article class="card">${foto(s.imagem, '', s.legenda, s.descricao_imagem || s.legenda || s.titulo)}<h3>${esc(s.titulo)}</h3>${paras(s.texto)}${linkMais(e, s)}${articleStats(e, s, metrics, liked)}</article>`).join('')}</div></section>` : ''
-  const tech = te.length ? `<section id="tecnologia" class="sec"><h2 class="sh">Tecnologia</h2><div class="cards">${te.map((t) => `<article class="card">${foto(t.imagem, '', t.legenda, t.descricao_imagem || t.legenda || t.titulo)}<h3>${esc(t.titulo)}</h3>${paras(t.texto)}${linkMais(e, t)}${articleStats(e, t, metrics, liked)}</article>`).join('')}</div></section>` : ''
+  const tech = te.length ? `<section id="tecnologia" class="sec tc"><div class="tc-head"><h2 class="sh">Tecnologia</h2>${te.length > 1 ? `<div class="tc-ctrl"><button class="tc-btn" type="button" data-tc="prev" aria-label="Notícia anterior">${TC_SETA_ESQ}</button><button class="tc-btn" type="button" data-tc="next" aria-label="Próxima notícia">${TC_SETA_DIR}</button></div>` : ''}</div><div class="tc-track" role="region" aria-roledescription="carrossel" aria-label="Notícias de tecnologia">${te.map((t, i) => `<article class="card tc-item${i === 0 ? ' on' : ''}" style="--w:${TC_LARGURAS[i % TC_LARGURAS.length]}px" role="group" aria-roledescription="slide" aria-label="${i + 1} de ${te.length}" tabindex="0">${foto(t.imagem, '', t.legenda, t.descricao_imagem || t.legenda || t.titulo)}<h3>${esc(t.titulo)}</h3><div class="tc-more"><div>${paras(t.texto)}${linkMais(e, t)}${articleStats(e, t, metrics, liked)}</div></div></article>`).join('')}</div></section>` : ''
   const dates = da.length ? `<section id="datas" class="sec datas"><h2 class="sh">Datas importantes no mundo de tecnologia</h2><div class="cal">${da.map((d, i) => { const [x, m] = dm(d.data); const href = /^https?:\/\//i.test(d.link || '') ? d.link : `?edicao=${encodeURIComponent(e.id)}&data=${i}`; return `<a class="dt c${i % 5}" href="${esc(href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(d.titulo)} — abrir informações relacionadas"><time><b>${x}</b>${m}</time><span class="dt-title">${esc(d.titulo)}</span></a>` }).join('')}</div></section>` : ''
   const extras = ex.map((x) => `<section id="${slug(x.secao || x.titulo)}" class="sec"><h2 class="sh">${esc(x.secao || x.titulo)}</h2><article class="extra comimg">${foto(x.imagem, '', x.legenda, x.descricao_imagem || x.legenda || x.titulo)}<div><h3>${esc(x.titulo)}</h3>${paras(x.texto)}${linkMais(e, x)}${articleStats(e, x, metrics, liked)}</div></article></section>`).join('')
   const approvedMessages = (yearMessages || []).filter((item) => item?.aprovada && item?.professor && item?.mensagem)
@@ -62,6 +68,7 @@ export function renderEdition(e, metrics = {}, liked = [], yearMessages = []) {
   const savedOrder = Array.isArray(c.ordem_secoes) ? c.ordem_secoes.filter((key) => defaultOrder.includes(key)) : []
   const sectionOrder = [...savedOrder, ...defaultOrder.filter((key) => !savedOrder.includes(key))]
   $('out').innerHTML = (top + sectionOrder.map((key) => sections[key]).join('')) || '<p class="vazio">Esta edição ainda não tem conteúdo.</p>'
+  initTechCarousel($('out'))
 
   // Links de navegação só para as seções que existem
   const orderedNav = sectionOrder.flatMap((key) => key === 'extras'
