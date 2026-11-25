@@ -25,7 +25,12 @@ export const richText = (text = '') => {
 }
 
 export const paras = (t) =>
-  String(t || '').split(/\n\s*\n/).filter(Boolean).map((p) => `<p>${richText(p).replace(/\n/g, '<br>')}</p>`).join('')
+  String(t || '').split(/\n\s*\n/).filter(Boolean).map((block) => {
+    const lines = block.split('\n')
+    if (lines.length === 1 && /^##\s+/.test(lines[0])) return `<h2 class="article-subtitle">${richText(lines[0].replace(/^##\s+/, ''))}</h2>`
+    if (lines.every((line) => /^>\s?/.test(line))) return `<blockquote class="article-quote">${lines.map((line) => richText(line.replace(/^>\s?/, ''))).join('<br>')}</blockquote>`
+    return `<p>${richText(block).replace(/\n/g, '<br>')}</p>`
+  }).join('')
 
 const plainAlt = (value) => String(value || '').replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1').replace(/\*\*/g, '').replace(/(^|[^*])\*([^*]+)\*/g, '$1$2').replace(/\s+/g, ' ').trim()
 export const img = (u, cls = '', alt = '') =>

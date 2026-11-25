@@ -25,7 +25,7 @@ const LISTAS = {
   secundarias: { titulo: 'Notícias secundárias', desc: 'Notícias que aparecem abaixo do destaque da capa.', item: 'Matéria', add: 'Adicionar matéria', campos: NOTICIA },
   tecnologia: { titulo: 'Notícias de tecnologia', desc: 'Novidades do mundo da tecnologia.', item: 'Matéria', add: 'Adicionar matéria', campos: NOTICIA },
   eventos: { titulo: 'Próximos eventos', desc: 'Eventos que aparecem na lista lateral da capa.', item: 'Evento', add: 'Adicionar evento', campos: [['titulo', 'Nome do evento'], ['data', 'Data', 'date'], ['local', 'Local ou link']] },
-  datas: { titulo: 'Datas importantes no mundo da tecnologia', desc: 'Cadastre datas e links relacionados.', item: 'Data', add: 'Adicionar data', campos: [['data', 'Data', 'date'], ['titulo', 'O que acontece'], ['link', 'Link externo (opcional)', 'url']] },
+  datas: { titulo: 'Datas importantes no mundo da tecnologia', desc: 'Cadastre datas informativas, exibidas apenas para consulta.', item: 'Data', add: 'Adicionar data', campos: [['data', 'Data', 'date'], ['titulo', 'O que acontece']] },
   extras: { titulo: 'Outras seções', desc: 'Seções livres, com o nome que você escolher.', item: 'Seção', add: 'Adicionar seção', campos: [['secao', 'Nome da seção'], ...NOTICIA] }
 }
 const ORDEM_LISTAS = ['secundarias', 'tecnologia', 'eventos', 'datas', 'extras']
@@ -82,7 +82,7 @@ function campo([nome, rotulo, tipo = 'text', dica = '']) {
   const hint = dica ? `<small class="hint">${esc(dica)}</small>` : ''
   if (tipo === 'toggle') return `<label class="special-toggle wide"><span class="lbl">${esc(rotulo)}</span><select data-f="${nome}"><option value="nao">Não exibir</option><option value="sim">Sim, exibir nesta edição</option></select></label>`
   if (tipo === 'image') return campoImagem(rotulo)
-  if (tipo === 'area') return `<label class="rich-field wide"><span class="lbl">${esc(rotulo)}</span><span class="rich-toolbar" aria-label="Formatação do texto"><button type="button" data-format="bold" title="Negrito"><strong>B</strong></button><button type="button" data-format="italic" title="Itálico"><em>I</em></button><button type="button" data-format="link" title="Inserir link">↗ Link</button></span><textarea data-f="${nome}" rows="4" placeholder="Escreva aqui. Use os botões acima para negrito, itálico ou links."></textarea>${hint}</label>`
+  if (tipo === 'area') return `<label class="rich-field wide"><span class="lbl">${esc(rotulo)}</span><span class="rich-toolbar" aria-label="Formatação do texto"><button type="button" data-format="bold" title="Negrito"><strong>B</strong></button><button type="button" data-format="italic" title="Itálico"><em>I</em></button><button type="button" data-format="link" title="Inserir link">↗ Link</button><button type="button" data-format="subtitle" title="Inserir subtítulo">H2 Subtítulo</button><button type="button" data-format="quote" title="Formatar citação">❝ Citação</button></span><textarea data-f="${nome}" rows="4" placeholder="Escreva aqui. Use os botões para formatar o texto."></textarea>${hint}<small class="hint">Subtítulo: selecione um trecho e clique em H2, ou insira um subtítulo. Citação: selecione o trecho e clique em Citação.</small></label>`
   return `<label><span class="lbl">${esc(rotulo)}</span><input data-f="${nome}" type="${tipo}">${hint}</label>`
 }
 
@@ -98,6 +98,8 @@ function bindRichText(container) {
         let replacement
         if (format === 'bold') replacement = `**${selected}**`
         else if (format === 'italic') replacement = `*${selected}*`
+        else if (format === 'subtitle') replacement = `\n\n## ${(selected || 'Subtítulo').replace(/\s*\n\s*/g, ' ')}\n\n`
+        else if (format === 'quote') replacement = `\n\n${(selected || 'Citação').split('\n').map((line) => `> ${line}`).join('\n')}\n\n`
         else {
           const url = prompt('Cole o endereço do link (começando com https:// ou http://):')
           if (!url) return
