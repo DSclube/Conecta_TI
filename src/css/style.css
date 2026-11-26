@@ -568,7 +568,7 @@ body{padding-bottom:calc(var(--rod-h,44px) + 1rem)}
 .tc-item{flex:0 0 min(360px,84vw);min-width:0;scroll-snap-align:start;display:flex;flex-direction:column;align-self:stretch}
 .tc-item img,.tc-item .ph{width:100%;aspect-ratio:16/10;object-fit:cover}
 .tc-item figure{margin:.3rem 0 .6rem}
-.tc-item .tc-more{display:block;margin-top:auto}
+.tc-item .tc-more{display:block;margin-top:.15rem}
 .tc-item .tc-more>p{margin:.45rem 0}
 .article-subtitle{margin:1.6rem 0 .6rem;color:var(--navy2);font-size:1.45rem;line-height:1.25}
 .article-quote{margin:1.3rem 0;padding:.7rem 1.1rem;border-left:4px solid var(--teal);background:#f2f6f7;color:#344b55;font-size:1.05rem;font-style:italic}
